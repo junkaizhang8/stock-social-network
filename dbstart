@@ -6,4 +6,5 @@ docker run \
     -e POSTGRES_DB=c43pgdb \
 	-e PGDATA=/var/lib/postgresql/data/pgdata \
 	-v "$(pwd)/data":/var/lib/postgresql/data \
+  -p 5432:5432
 	postgres
