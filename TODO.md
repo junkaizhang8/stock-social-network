@@ -65,6 +65,10 @@ For each portfolio
 11.3. Users should be able to view the stock lists available to them, tagged by category
 11.4. Users can delete stock lists made by themselves
 11.5. Users can view the statistics of any portfolio available to them
+11.6. Category denotes visibility, i.e., whether a stock list is:
+        "private" to the owner themselves, or
+        "shared" with a friend, or
+        "public" to all users
 ### 12. Reviewing stock lists
 12.1. Users can write reviews for stock lists
 12.2. These reviews do not exceed 4000 characters

@@ -1,1 +1,0 @@
-docker exec -it c43db psql -U postgres c43pgdb
