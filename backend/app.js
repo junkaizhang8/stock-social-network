@@ -9,10 +9,11 @@ app.use(bodyParser.json());
 app.use(express.static("static"));
 
 // Routers should always be plural
-app.use("/stocks", stocksRouter);
+app.use("/api/stocks", stocksRouter);
 
+// Debugging endpoint to check if we can connect to the server
 app.get("/", (req, res) => {
-  res.send("Hello, world!");
+  res.send("Hello world!");
 });
 
 app.listen(PORT, (err) => {
