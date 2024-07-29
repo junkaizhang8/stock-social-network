@@ -1,10 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import { stocksRouter } from "./routers/stocks_router.js";
 
 const PORT = 3000;
 export const app = express();
 app.use(bodyParser.json());
+
+app.use(cookieParser());
 
 app.use(express.static("static"));
 

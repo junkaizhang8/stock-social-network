@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { pool } from "../db.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 export const stocksRouter = Router();
 
 // Example router endpoint for getting all the stocks
-stocksRouter.get("/", async (req, res) => {
+stocksRouter.get("/", authenticateToken, async (req, res) => {
   // Sample query
   const stocks = await pool.query("SELECT * FROM old_stocks LIMIT 10");
 
