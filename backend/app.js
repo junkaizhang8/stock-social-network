@@ -1,0 +1,21 @@
+import express from "express";
+import bodyParser from "body-parser";
+import { stocksRouter } from "./routers/stocks_router.js";
+
+const PORT = 3000;
+export const app = express();
+app.use(bodyParser.json());
+
+app.use(express.static("static"));
+
+// Routers should always be plural
+app.use("/stocks", stocksRouter);
+
+app.get("/", (req, res) => {
+  res.send("Hello, world!");
+});
+
+app.listen(PORT, (err) => {
+  if (err) console.log(err);
+  else console.log("HTTP server on http://localhost:%s", PORT);
+});

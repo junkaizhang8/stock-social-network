@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  db:
+    container_name: c43db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: a
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: c43pgdb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+  server:
+    container_name: c43server
+    build: ./backend
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: a
+      DB_PASSWORD: postgres
+      DB_NAME: c43pgdb
