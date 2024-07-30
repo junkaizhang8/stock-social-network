@@ -1,4 +1,5 @@
-FROM node:22-alpine
+# Build the app
+FROM node:22-alpine as build
 
 WORKDIR /app
 
@@ -10,4 +11,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
