@@ -19,7 +19,7 @@ services:
     build: ./backend
     restart: always
     ports:
-      - 3000:3000
+      - 4000:4000
     depends_on:
       - db
     environment:
@@ -27,3 +27,9 @@ services:
       DB_USER: postgres
       DB_PASSWORD: a
       DB_NAME: c43pgdb
+  app:
+    container_name: c43app
+    build: ./frontend
+    restart: always
+    ports:
+      - 3000:3000

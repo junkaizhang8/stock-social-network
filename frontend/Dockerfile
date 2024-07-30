@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
@@ -8,6 +8,6 @@ RUN npm ci --silent
 
 COPY . .
 
-EXPOSE 4000
+EXPOSE 3000
 
 CMD ["npm", "start"]
