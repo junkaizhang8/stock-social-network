@@ -15,7 +15,7 @@ const renewToken = (refreshToken, req, res) => {
 
   try {
     const user = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    createAccessToken(user.id, user.username, res);
+    createAccessToken(user.username, res);
     req.user = user;
     return user;
   } catch (err) {
