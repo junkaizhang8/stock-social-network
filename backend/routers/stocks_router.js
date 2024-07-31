@@ -3,6 +3,7 @@ import { pool } from "../db.js";
 
 export const stocksRouter = Router();
 
+// Get current stock prices
 stocksRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
@@ -15,7 +16,7 @@ stocksRouter.get("/", async (req, res) => {
     `
     SELECT *
     FROM stock
-    ORDER BY stock_id DESC
+    ORDER BY symbol
     OFFSET $1
     LIMIT $2;
     `,

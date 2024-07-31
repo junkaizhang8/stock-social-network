@@ -1,17 +1,25 @@
 import { Router } from "express";
 import { pool } from "../db.js";
 
-export const portfoliosRouter = Router();
+export const stocksListsRouter = Router();
 
-// Create a new portfolio
-portfoliosRouter.post("/", async (req, res) => {
+// Create a new stock list
+stocksListsRouter.post("/", async (req, res) => {
   const name = req.body.name;
-  const balance = parseFloat(req.body.balance) || 0;
+  const visibility = req.body.visibility;
 
   const userId = req.user.id;
 
   if (!name) {
     return res.status(422).json({ error: "Name required." });
+  }
+
+  if (
+    visibility !== "public" &&
+    visibility !== "private" &&
+    visibility !== "shared"
+  ) {
+    return res.status(422).json({ error: "Invalid visibility." });
   }
 
   try {
@@ -28,20 +36,20 @@ portfoliosRouter.post("/", async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO portfolio (collection_id, balance)
+      INSERT INTO stock_list (collection_id, visibility)
       VALUES ($1, $2);
       `,
-      [collectionId, balance]
+      [collectionId, visibility]
     );
 
-    return res.json({ portfolioId: collectionId });
+    return res.json({ listId: collectionId });
   } catch (err) {
-    return res.status(422).json({ error: "Could not create portfolio." });
+    return res.status(422).json({ error: "Could not create stock list." });
   }
 });
 
-// Get portfolios for a user
-portfoliosRouter.get("/", async (req, res) => {
+// Get stock lists for a user
+stocksListsRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -51,10 +59,10 @@ portfoliosRouter.get("/", async (req, res) => {
     return res.status(422).json({ error: "Invalid page or limit." });
   }
 
-  const portfolioQuery = await pool.query(
+  const stockListQuery = await pool.query(
     `
     SELECT *
-    FROM portfolio NATURAL JOIN
+    FROM stock_list NATURAL JOIN
       (SELECT collection_id, name
        FROM stock_collection
        WHERE owner = $1)
@@ -68,7 +76,7 @@ portfoliosRouter.get("/", async (req, res) => {
   const totalQuery = await pool.query(
     `
     SELECT COUNT(*) AS total
-    FROM portfolio NATURAL JOIN
+    FROM stock_list NATURAL JOIN
       (SELECT collection_id
        FROM stock_collection
        WHERE owner = $1);
@@ -77,7 +85,7 @@ portfoliosRouter.get("/", async (req, res) => {
   );
 
   return res.json({
-    portfolios: portfolioQuery.rows,
+    stockLists: stockListQuery.rows,
     total: totalQuery.rows[0].total,
   });
 });
