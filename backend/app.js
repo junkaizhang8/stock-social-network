@@ -6,6 +6,8 @@ import { usersRouter } from "./routers/users_router.js";
 import { portfoliosRouter } from "./routers/portfolios_router.js";
 import { stocksListsRouter } from "./routers/stock_lists_router.js";
 import { stocksRouter } from "./routers/stocks_router.js";
+import { requestsRouter } from "./routers/requests_router.js";
+import { friendsRouter } from "./routers/friends_router.js";
 
 const PORT = 4000;
 export const app = express();
@@ -19,6 +21,8 @@ app.use("/api/users", usersRouter);
 app.use("/api/portfolios", authenticateToken, portfoliosRouter);
 app.use("/api/stock-lists", authenticateToken, stocksListsRouter);
 app.use("/api/stocks", authenticateToken, stocksRouter);
+app.use("/api/requests", authenticateToken, requestsRouter);
+app.use("/api/friends", authenticateToken, friendsRouter);
 
 // Debugging endpoint to check if we can connect to the server
 app.get("/", (req, res) => {

@@ -62,10 +62,10 @@ stocksListsRouter.get("/", async (req, res) => {
   const stockListQuery = await pool.query(
     `
     SELECT *
-    FROM stock_list NATURAL JOIN
-      (SELECT collection_id, name
-       FROM stock_collection
-       WHERE owner = $1)
+    FROM stock_list NATURAL JOIN (
+      SELECT collection_id, name
+      FROM stock_collection
+      WHERE owner = $1)
     ORDER BY collection_id DESC
     OFFSET $2
     LIMIT $3;
@@ -76,10 +76,10 @@ stocksListsRouter.get("/", async (req, res) => {
   const totalQuery = await pool.query(
     `
     SELECT COUNT(*) AS total
-    FROM stock_list NATURAL JOIN
-      (SELECT collection_id
-       FROM stock_collection
-       WHERE owner = $1);
+    FROM stock_list NATURAL JOIN (
+      SELECT collection_id
+      FROM stock_collection
+      WHERE owner = $1);
     `,
     [userId]
   );

@@ -54,10 +54,10 @@ portfoliosRouter.get("/", async (req, res) => {
   const portfolioQuery = await pool.query(
     `
     SELECT *
-    FROM portfolio NATURAL JOIN
-      (SELECT collection_id, name
-       FROM stock_collection
-       WHERE owner = $1)
+    FROM portfolio NATURAL JOIN (
+      SELECT collection_id, name
+      FROM stock_collection
+      WHERE owner = $1)
     ORDER BY collection_id DESC
     OFFSET $2
     LIMIT $3;
@@ -68,10 +68,10 @@ portfoliosRouter.get("/", async (req, res) => {
   const totalQuery = await pool.query(
     `
     SELECT COUNT(*) AS total
-    FROM portfolio NATURAL JOIN
-      (SELECT collection_id
-       FROM stock_collection
-       WHERE owner = $1);
+    FROM portfolio NATURAL JOIN (
+      SELECT collection_id
+      FROM stock_collection
+      WHERE owner = $1);
     `,
     [userId]
   );
@@ -82,6 +82,7 @@ portfoliosRouter.get("/", async (req, res) => {
   });
 });
 
+// Deposite/withdraw portfolio balance
 portfoliosRouter.patch("/:id", async (req, res) => {
   const portfolioId = parseInt(req.params.id);
   const amount = parseFloat(req.body.amount) || 0;
