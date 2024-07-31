@@ -81,3 +81,47 @@ portfoliosRouter.get("/", async (req, res) => {
     total: totalQuery.rows[0].total,
   });
 });
+
+portfoliosRouter.patch("/:id", async (req, res) => {
+  const portfolioId = parseInt(req.params.id);
+  const amount = parseFloat(req.body.amount) || 0;
+
+  if (amount == 0) {
+    return res.status(422).json({ error: "Invalid amount." });
+  }
+
+  const userIdQuery = await pool.query(
+    `
+    SELECT owner
+    FROM stock_collection
+    WHERE collection_id = $1;
+    `,
+    [portfolioId]
+  );
+
+  if (userIdQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Portfolio not found." });
+  }
+
+  if (userIdQuery.rows[0].owner !== req.user.id) {
+    return res.status(403).json({ error: "Not authorized." });
+  }
+
+  try {
+    const balanceQuery = await pool.query(
+      `
+      UPDATE portfolio
+      SET balance = balance + $1
+      WHERE collection_id = $2
+      RETURNING balance;
+      `,
+      [amount, portfolioId]
+    );
+
+    return res.json({ balance: balanceQuery.rows[0].balance });
+  } catch (err) {
+    return res
+      .status(422)
+      .json({ error: "Could not update portfolio balance." });
+  }
+});

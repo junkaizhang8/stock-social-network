@@ -15,7 +15,6 @@ app.use(cookieParser());
 
 app.use(express.static("static"));
 
-// Routers should always be plural
 app.use("/api/users", usersRouter);
 app.use("/api/portfolios", authenticateToken, portfoliosRouter);
 app.use("/api/stock-lists", authenticateToken, stocksListsRouter);
