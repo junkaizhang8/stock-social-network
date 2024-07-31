@@ -15,16 +15,26 @@ portfoliosRouter.post("/", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const collectionQuery = await pool.query(
       `
-      INSERT INTO portfolio (name, owner, balance)
-      VALUES ($1, $2, $3)
-      RETURNING portfolio_id;
+      INSERT INTO stock_collection (name, owner)
+      VALUES ($1, $2);
+      RETURNING collection_id;
       `,
-      [name, userId, balance]
+      [name, userId]
     );
 
-    return res.json({ portfolioId: result.rows[0].portfolio_id });
+    const collectionId = collectionQuery.rows[0].collection_id;
+
+    await pool.query(
+      `
+      INSERT INTO portfolio (collection_id, owner, balance)
+      VALUES ($1, $2, $3);
+      `,
+      [collectionId, userId, balance]
+    );
+
+    return res.json({ portfolioId: collectionId });
   } catch (err) {
     return res.status(422).json({ error: "Could not create portfolio." });
   }
@@ -41,12 +51,12 @@ portfoliosRouter.get("/", async (req, res) => {
 
   const userId = req.user.id;
 
-  const portfoliosQuery = await pool.query(
+  const portfolioQuery = await pool.query(
     `
     SELECT *
     FROM portfolio
     WHERE owner = $1
-    ORDER BY portfolio_id DESC
+    ORDER BY collection_id DESC
     OFFSET $2
     LIMIT $3;
     `,
@@ -63,7 +73,7 @@ portfoliosRouter.get("/", async (req, res) => {
   );
 
   return res.json({
-    portfolios: portfoliosQuery.rows,
+    portfolios: portfolioQuery.rows,
     total: totalQuery.rows[0].total,
   });
 });

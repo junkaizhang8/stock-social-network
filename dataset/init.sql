@@ -7,20 +7,27 @@ CREATE TABLE account (
   password TEXT NOT NULL
 );
 CREATE TABLE relationship (
-  friend1 SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
-  friend2 SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
+  friend1 SERIAL REFERENCES account(account_id) ON DELETE CASCADE,
+  friend2 SERIAL REFERENCES account(account_id) ON DELETE CASCADE,
   type RELATION NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (friend1, friend2)
 );
-CREATE TABLE portfolio (
-  portfolio_id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
+CREATE TABLE stock_collection (
+  collection_id SERIAL PRIMARY KEY,
   owner SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
-  balance PRICE NOT NULL DEFAULT 0
+  name TEXT NOT NULL
+);
+CREATE TABLE portfolio (
+  collection_id SERIAL PRIMARY KEY REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
+  balance PRICE NOT NULL DEFAULT 0 CHECK (balance >= 0)
+);
+CREATE TABLE stock_list (
+  collection_id SERIAL PRIMARY KEY REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
+  visibility VISIBILITY NOT NULL
 );
 CREATE TABLE stock (
-  symbol VARCHAR(5) NOT NULL PRIMARY KEY,
+  symbol VARCHAR(5) PRIMARY KEY,
   open PRICE,
   high PRICE,
   low PRICE,
@@ -29,7 +36,7 @@ CREATE TABLE stock (
   CHECK (open >= 0 AND high >= 0 AND low >= 0 AND close >= 0 AND volume >= 0)
 );
 CREATE TABLE stock_history (
-  symbol VARCHAR(5) NOT NULL,
+  symbol VARCHAR(5),
   open PRICE,
   high PRICE,
   low PRICE,
@@ -39,29 +46,25 @@ CREATE TABLE stock_history (
   PRIMARY KEY (symbol, date),
   CHECK (open >= 0 AND high >= 0 AND low >= 0 AND close >= 0 AND volume >= 0)
 );
-CREATE TABLE in_portfolio (
-  portfolio_id SERIAL NOT NULL REFERENCES portfolio(portfolio_id) ON DELETE CASCADE,
-  symbol VARCHAR(5) NOT NULL REFERENCES stock(symbol) ON DELETE CASCADE,
+CREATE TABLE in_collection (
+  collection_id SERIAL REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
+  symbol VARCHAR(5) REFERENCES stock(symbol) ON DELETE CASCADE,
   shares INTEGER NOT NULL CHECK (shares >= 1),
-  PRIMARY KEY (portfolio_id, symbol)
+  PRIMARY KEY (collection_id, symbol)
 );
 CREATE TABLE transaction (
   transaction_id SERIAL PRIMARY KEY,
-  portfolio_id SERIAL NOT NULL REFERENCES portfolio(portfolio_id) ON DELETE CASCADE,
+  collection_id SERIAL NOT NULL REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
   symbol VARCHAR(5) NOT NULL REFERENCES stock(symbol) ON DELETE CASCADE,
   shares INTEGER NOT NULL CHECK (shares >= 1),
   delta PRICE NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE TABLE stock_list (
-  portfolio_id SERIAL PRIMARY KEY NOT NULL REFERENCES portfolio(portfolio_id) ON DELETE CASCADE,
-  visibility VISIBILITY NOT NULL
-);
 CREATE TABLE review (
-  portfolio_id SERIAL NOT NULL REFERENCES portfolio(portfolio_id) ON DELETE CASCADE,
-  reviewer SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
+  collection_id SERIAL REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
+  reviewer SERIAL REFERENCES account(account_id) ON DELETE CASCADE,
   text VARCHAR(4000) NOT NULL,
-  PRIMARY KEY (portfolio_id, reviewer)
+  PRIMARY KEY (collection_id, reviewer)
 );
 CREATE TABLE account_history (
   ah_id SERIAL PRIMARY KEY,

@@ -17,7 +17,7 @@ app.use(express.static("static"));
 // Routers should always be plural
 app.use("/api/users", usersRouter);
 app.use("/api/portfolios", authenticateToken, portfoliosRouter);
-app.use("/api/stocks", stocksRouter);
+app.use("/api/stocks", authenticateToken, stocksRouter);
 
 // Debugging endpoint to check if we can connect to the server
 app.get("/", (req, res) => {
