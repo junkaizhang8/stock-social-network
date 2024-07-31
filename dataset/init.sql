@@ -15,8 +15,8 @@ CREATE TABLE relationship (
 );
 CREATE TABLE stock_collection (
   collection_id SERIAL PRIMARY KEY,
-  owner SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  owner SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE
 );
 CREATE TABLE portfolio (
   collection_id SERIAL PRIMARY KEY REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
