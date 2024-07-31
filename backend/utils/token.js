@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 
-export const createAccessToken = (username, res) => {
+export const createAccessToken = (id, username, res) => {
   const expiresIn = "15m";
   const expiresInMs = 900000;
 
-  const token = jwt.sign({ username }, process.env.ACCESS_TOKEN_SECRET, {
+  const token = jwt.sign({ id, username }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: expiresIn,
   });
 
@@ -14,11 +14,11 @@ export const createAccessToken = (username, res) => {
   });
 };
 
-export const createRefreshToken = (username, res) => {
+export const createRefreshToken = (id, username, res) => {
   const expiresIn = "30d";
   const expiresInMs = 2.592e9;
 
-  const token = jwt.sign({ username }, process.env.REFRESH_TOKEN_SECRET, {
+  const token = jwt.sign({ id, username }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: expiresIn,
   });
 

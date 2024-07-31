@@ -8,8 +8,11 @@ import {
   deleteAccessToken,
   deleteRefreshToken,
 } from "../utils/token.js";
+import { portfoliosRouter } from "./portfolios_router.js";
 
 export const usersRouter = Router();
+
+usersRouter.use("/:id/portfolios", authenticateToken, portfoliosRouter);
 
 // Sign up
 usersRouter.post("/signup", async (req, res) => {
@@ -83,8 +86,8 @@ usersRouter.post("/signin", async (req, res) => {
     return res.status(401).json({ error: "Incorrect username or password." });
   }
 
-  createAccessToken(user.username, res);
-  createRefreshToken(user.username, res);
+  createAccessToken(user.id, user.username, res);
+  createRefreshToken(user.id, user.username, res);
 
   return res.json({ message: "Sign in successful." });
 });
