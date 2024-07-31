@@ -2,12 +2,13 @@ CREATE TYPE VISIBILITY AS ENUM ('public', 'private', 'shared');
 CREATE TYPE RELATION AS ENUM ('friend', 'request', 'rejected');
 CREATE DOMAIN PRICE AS NUMERIC(12, 2);
 CREATE TABLE account (
-  username TEXT NOT NULL PRIMARY KEY,
+  account_id SERIAL PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL
 );
 CREATE TABLE relationship (
-  friend1 TEXT NOT NULL REFERENCES account(username) ON DELETE CASCADE,
-  friend2 TEXT NOT NULL REFERENCES account(username) ON DELETE CASCADE,
+  friend1 SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
+  friend2 SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   type RELATION NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (friend1, friend2)
@@ -15,7 +16,7 @@ CREATE TABLE relationship (
 CREATE TABLE portfolio (
   portfolio_id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
-  owner TEXT NOT NULL REFERENCES account(username) ON DELETE CASCADE,
+  owner SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   balance PRICE NOT NULL DEFAULT 0
 );
 CREATE TABLE stock (
@@ -58,13 +59,13 @@ CREATE TABLE stock_list (
 );
 CREATE TABLE review (
   portfolio_id SERIAL NOT NULL REFERENCES portfolio(portfolio_id) ON DELETE CASCADE,
-  reviewer TEXT NOT NULL REFERENCES account(username) ON DELETE CASCADE,
+  reviewer SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   text VARCHAR(4000) NOT NULL,
   PRIMARY KEY (portfolio_id, reviewer)
 );
 CREATE TABLE account_history (
   ah_id SERIAL PRIMARY KEY,
-  purchaser TEXT NOT NULL REFERENCES account(username) ON DELETE CASCADE,
+  purchaser SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   symbol VARCHAR(5) NOT NULL REFERENCES stock(symbol) ON DELETE CASCADE,
   amount INTEGER NOT NULL,
   delta PRICE NOT NULL,
