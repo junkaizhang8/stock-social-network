@@ -12,7 +12,7 @@ import { portfoliosRouter } from "./portfolios_router.js";
 
 export const usersRouter = Router();
 
-usersRouter.use("/:id/portfolios", authenticateToken, portfoliosRouter);
+usersRouter.use("/:userId/portfolios", authenticateToken, portfoliosRouter);
 
 // Sign up
 usersRouter.post("/signup", async (req, res) => {
@@ -86,8 +86,8 @@ usersRouter.post("/signin", async (req, res) => {
     return res.status(401).json({ error: "Incorrect username or password." });
   }
 
-  createAccessToken(user.id, user.username, res);
-  createRefreshToken(user.id, user.username, res);
+  createAccessToken(user.account_id, user.username, res);
+  createRefreshToken(user.account_id, user.username, res);
 
   return res.json({ message: "Sign in successful." });
 });
