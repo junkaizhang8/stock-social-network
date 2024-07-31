@@ -27,6 +27,7 @@ services:
       DB_USER: postgres
       DB_PASSWORD: a
       DB_NAME: c43pgdb
+      DB_PORT: 5432
   app:
     container_name: c43app
     build: ./frontend
