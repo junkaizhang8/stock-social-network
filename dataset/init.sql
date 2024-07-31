@@ -19,14 +19,20 @@ CREATE TABLE portfolio (
   owner SERIAL NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
   balance PRICE NOT NULL DEFAULT 0
 );
+CREATE TABLE stat2_cache (
+  stock1 VARCHAR(5) NOT NULL,
+  stock2 VARCHAR(5) NOT NULL,
+  last_updated DATE DEFAULT NULL,
+  covariance REAL DEFAULT 0,
+  correlation REAL DEFAULT 0,
+  PRIMARY KEY (stock1, stock2)
+);
 CREATE TABLE stock (
   symbol VARCHAR(5) NOT NULL PRIMARY KEY,
-  open PRICE,
-  high PRICE,
-  low PRICE,
-  close PRICE,
-  volume INTEGER NOT NULL DEFAULT 0,
-  CHECK (open >= 0 AND high >= 0 AND low >= 0 AND close >= 0 AND volume >= 0)
+  last_updated DATE DEFAULT NULL,
+  beta REAL DEFAULT 0,
+  variance REAL DEFAULT 0,
+  coef REAL DEFAULT 0
 );
 CREATE TABLE stock_history (
   symbol VARCHAR(5) NOT NULL,
