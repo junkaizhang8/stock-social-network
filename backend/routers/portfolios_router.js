@@ -8,7 +8,7 @@ portfoliosRouter.post("/", async (req, res) => {
   const name = req.body.name;
   const balance = parseFloat(req.body.balance) || 0;
 
-  const userId = req.params.userId;
+  const userId = req.user.id;
 
   if (!name) {
     return res.status(422).json({ error: "Name required." });
@@ -39,7 +39,7 @@ portfoliosRouter.get("/", async (req, res) => {
     return res.status(422).json({ error: "Invalid page or limit." });
   }
 
-  const userId = req.params.userId;
+  const userId = req.user.id;
 
   const portfoliosQuery = await pool.query(
     `

@@ -8,11 +8,8 @@ import {
   deleteAccessToken,
   deleteRefreshToken,
 } from "../utils/token.js";
-import { portfoliosRouter } from "./portfolios_router.js";
 
 export const usersRouter = Router();
-
-usersRouter.use("/:userId/portfolios", authenticateToken, portfoliosRouter);
 
 // Sign up
 usersRouter.post("/signup", async (req, res) => {
