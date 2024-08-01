@@ -63,7 +63,7 @@ CREATE TABLE transaction (
   transaction_id SERIAL PRIMARY KEY,
   collection_id SERIAL NOT NULL REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
   symbol VARCHAR(5) NOT NULL REFERENCES stock(symbol) ON DELETE CASCADE,
-  shares INTEGER NOT NULL CHECK (shares >= 1),
+  shares INTEGER NOT NULL CHECK (shares != 0),
   delta PRICE NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

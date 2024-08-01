@@ -49,7 +49,7 @@ reviewsRouter.post("/", async (req, res) => {
   );
 
   if (allowedQuery.rowCount === 0) {
-    return res.status(422).json({ error: "Cannot review this list." });
+    return res.status(403).json({ error: "Not authorized review this list." });
   }
 
   try {
@@ -102,7 +102,9 @@ reviewsRouter.get("/", async (req, res) => {
   );
 
   if (allowedQuery.rowCount === 0) {
-    return res.status(422).json({ error: "Cannot see reviews of this list." });
+    return res
+      .status(403)
+      .json({ error: "Not authorized see reviews of this list." });
   }
 
   const { visibility, owner } = allowedQuery.rows[0];

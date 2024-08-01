@@ -156,7 +156,7 @@ requestsRouter.patch("/", async (req, res) => {
   );
 
   if (requestQuery.rowCount === 0) {
-    return res.status(422).json({ error: "Friend request not found." });
+    return res.status(404).json({ error: "Friend request not found." });
   }
 
   if (action === "accept") {
