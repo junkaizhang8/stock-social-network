@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Login from './pages/login/Login.jsx';
 import Portfolio from './pages/portfolio/Portfolio.jsx'
+import apiService from './services/api.js';
 import './App.css'
 
 function App() {
@@ -14,8 +15,9 @@ function App() {
     page = <p>:D</p>
 
   const logout = () => {
-    console.log("logout ):");
+    apiService.signOut();
     setPageNum(0);
+    console.log("signed out");
   }
 
   return (
