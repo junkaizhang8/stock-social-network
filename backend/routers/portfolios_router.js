@@ -40,6 +40,138 @@ portfoliosRouter.post("/", async (req, res) => {
   }
 });
 
+// Add/remove shares to a portfolio
+portfoliosRouter.post("/:id", async (req, res) => {
+  const portfolioId = parseInt(req.params.id);
+  const symbol = req.body.symbol;
+  const shares = parseInt(req.body.shares);
+
+  if (symbol === "" || shares === 0) {
+    return res.status(422).json({ error: "Invalid symbol or share quantity." });
+  }
+
+  const userIdQuery = await pool.query(
+    `
+    SELECT owner
+    FROM stock_collection NATURAL JOIN portfolio
+    WHERE collection_id = $1;
+    `,
+    [portfolioId]
+  );
+
+  if (userIdQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Portfolio not found." });
+  }
+
+  if (userIdQuery.rows[0].owner !== req.user.id) {
+    return res.status(403).json({ error: "Not authorized." });
+  }
+
+  const stockExistsQuery = await pool.query(
+    `
+    SELECT close AS price
+    FROM stock
+    WHERE symbol = $1;
+    `,
+    [symbol]
+  );
+
+  if (stockExistsQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Stock not found." });
+  }
+
+  const price = parseFloat(stockExistsQuery.rows[0].price);
+
+  // If buying shares, check if user has enough in their balance
+  if (shares > 0) {
+    const balanceQuery = await pool.query(
+      `
+      SELECT balance
+      FROM portfolio
+      WHERE collection_id = $1;
+      `,
+      [portfolioId]
+    );
+
+    const balance = parseFloat(balanceQuery.rows[0].balance);
+
+    if (balance < shares * price) {
+      return res.status(404).json({ error: "Insufficient funds." });
+    }
+  }
+
+  const stockInPortfolioQuery = await pool.query(
+    `
+    SELECT 1
+    FROM in_collection
+    WHERE collection_id = $1 AND symbol = $2;
+    `,
+    [portfolioId, symbol]
+  );
+
+  try {
+    // If stock already exists in portfolio, update shares
+    if (stockInPortfolioQuery.rowCount > 0) {
+      await pool.query(
+        `
+        UPDATE in_collection
+        SET shares = shares + $1
+        WHERE collection_id = $2 AND symbol = $3;
+        `,
+        [shares, portfolioId, symbol]
+      );
+
+      await pool.query(
+        `
+        UPDATE portfolio
+        SET balance = balance - $1
+        WHERE collection_id = $2;
+        `,
+        [shares * price, portfolioId]
+      );
+
+      await pool.query(
+        `
+        INSERT INTO transaction (collection_id, symbol, shares, delta)
+        VALUES ($1, $2, $3, $4);
+        `,
+        [portfolioId, symbol, shares, -1 * shares * price]
+      );
+      return res.json({ message: "Stock added." });
+    }
+
+    // If stock does not exist in portfolio, add stock
+    await pool.query(
+      `
+      INSERT INTO in_collection (collection_id, symbol, shares)
+      VALUES ($1, $2, $3);
+      `,
+      [portfolioId, symbol, shares]
+    );
+
+    await pool.query(
+      `
+      UPDATE portfolio
+      SET balance = balance - $1
+      WHERE collection_id = $2;
+      `,
+      [shares * price, portfolioId]
+    );
+
+    await pool.query(
+      `
+      INSERT INTO transaction (collection_id, symbol, shares, delta)
+      VALUES ($1, $2, $3, $4);
+      `,
+      [portfolioId, symbol, shares, -1 * shares * price]
+    );
+
+    return res.json({ message: "Stock added." });
+  } catch (err) {
+    return res.status(422).json({ error: "Could not add stock." });
+  }
+});
+
 // Get portfolios for a user
 portfoliosRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
@@ -216,138 +348,6 @@ portfoliosRouter.get("/:id/transactions", async (req, res) => {
     transactions: transactionQuery.rows,
     total: parseInt(totalQuery.rows[0].total),
   });
-});
-
-// Add/remove shares to a portfolio
-portfoliosRouter.post("/:id", async (req, res) => {
-  const portfolioId = parseInt(req.params.id);
-  const symbol = req.body.symbol;
-  const shares = parseInt(req.body.shares);
-
-  if (symbol === "" || shares === 0) {
-    return res.status(422).json({ error: "Invalid symbol or share quantity." });
-  }
-
-  const userIdQuery = await pool.query(
-    `
-    SELECT owner
-    FROM stock_collection NATURAL JOIN portfolio
-    WHERE collection_id = $1;
-    `,
-    [portfolioId]
-  );
-
-  if (userIdQuery.rowCount === 0) {
-    return res.status(404).json({ error: "Portfolio not found." });
-  }
-
-  if (userIdQuery.rows[0].owner !== req.user.id) {
-    return res.status(403).json({ error: "Not authorized." });
-  }
-
-  const stockExistsQuery = await pool.query(
-    `
-    SELECT close AS price
-    FROM stock
-    WHERE symbol = $1;
-    `,
-    [symbol]
-  );
-
-  if (stockExistsQuery.rowCount === 0) {
-    return res.status(404).json({ error: "Stock not found." });
-  }
-
-  const price = parseFloat(stockExistsQuery.rows[0].price);
-
-  // If buying shares, check if user has enough in their balance
-  if (shares > 0) {
-    const balanceQuery = await pool.query(
-      `
-      SELECT balance
-      FROM portfolio
-      WHERE collection_id = $1;
-      `,
-      [portfolioId]
-    );
-
-    const balance = parseFloat(balanceQuery.rows[0].balance);
-
-    if (balance < shares * price) {
-      return res.status(404).json({ error: "Insufficient funds." });
-    }
-  }
-
-  const stockInPortfolioQuery = await pool.query(
-    `
-    SELECT 1
-    FROM in_collection
-    WHERE collection_id = $1 AND symbol = $2;
-    `,
-    [portfolioId, symbol]
-  );
-
-  try {
-    // If stock already exists in portfolio, update shares
-    if (stockInPortfolioQuery.rowCount > 0) {
-      await pool.query(
-        `
-        UPDATE in_collection
-        SET shares = shares + $1
-        WHERE collection_id = $2 AND symbol = $3;
-        `,
-        [shares, portfolioId, symbol]
-      );
-
-      await pool.query(
-        `
-        UPDATE portfolio
-        SET balance = balance - $1
-        WHERE collection_id = $2;
-        `,
-        [shares * price, portfolioId]
-      );
-
-      await pool.query(
-        `
-        INSERT INTO transaction (collection_id, symbol, shares, delta)
-        VALUES ($1, $2, $3, $4);
-        `,
-        [portfolioId, symbol, shares, -1 * shares * price]
-      );
-      return res.json({ message: "Stock added." });
-    }
-
-    // If stock does not exist in portfolio, add stock
-    await pool.query(
-      `
-      INSERT INTO in_collection (collection_id, symbol, shares)
-      VALUES ($1, $2, $3);
-      `,
-      [portfolioId, symbol, shares]
-    );
-
-    await pool.query(
-      `
-      UPDATE portfolio
-      SET balance = balance - $1
-      WHERE collection_id = $2;
-      `,
-      [shares * price, portfolioId]
-    );
-
-    await pool.query(
-      `
-      INSERT INTO transaction (collection_id, symbol, shares, delta)
-      VALUES ($1, $2, $3, $4);
-      `,
-      [portfolioId, symbol, shares, -1 * shares * price]
-    );
-
-    return res.json({ message: "Stock added." });
-  } catch (err) {
-    return res.status(422).json({ error: "Could not add stock." });
-  }
 });
 
 // Deposite/withdraw portfolio balance
