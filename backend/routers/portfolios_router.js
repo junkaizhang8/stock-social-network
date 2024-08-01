@@ -164,6 +164,60 @@ portfoliosRouter.get("/:id/balance", async (req, res) => {
   return res.json({ balance: parseFloat(balanceQuery.rows[0].balance) });
 });
 
+// Get portfolio transactions
+portfoliosRouter.get("/:id/transactions", async (req, res) => {
+  const portfolioId = parseInt(req.params.id);
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const userIdQuery = await pool.query(
+    `
+    SELECT owner
+    FROM stock_collection NATURAL JOIN portfolio
+    WHERE collection_id = $1;
+    `,
+    [portfolioId]
+  );
+
+  if (userIdQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Portfolio not found." });
+  }
+
+  if (userIdQuery.rows[0].owner !== req.user.id) {
+    return res.status(403).json({ error: "Not authorized." });
+  }
+
+  if (page < 0 || limit < 0) {
+    return res.status(422).json({ error: "Invalid page or limit." });
+  }
+
+  const transactionQuery = await pool.query(
+    `
+    SELECT *
+    FROM transaction
+    WHERE collection_id = $1
+    ORDER BY timestamp DESC
+    OFFSET $2
+    LIMIT $3;
+    `,
+    [portfolioId, page * limit, limit]
+  );
+
+  const totalQuery = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM transaction
+    WHERE collection_id = $1;
+    `,
+    [portfolioId]
+  );
+
+  res.json({
+    transactions: transactionQuery.rows,
+    total: parseInt(totalQuery.rows[0].total),
+  });
+});
+
 // Add/remove shares to a portfolio
 portfoliosRouter.post("/:id", async (req, res) => {
   const portfolioId = parseInt(req.params.id);
