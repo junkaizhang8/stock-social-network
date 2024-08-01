@@ -17,8 +17,8 @@ function App() {
         <AlertContainer/>
       </>
     )
-  // else if (page_num == 1)
-    // page = <Portfolio/>
+  else if (page_num == 1)
+    page = <Portfolio/>
   else if (page_num == 2)
     page = <p>:D</p>
   else if (page_num == 3)

@@ -114,8 +114,18 @@ const Friends = () => {
 
   return (
     <>
-      <button className='btn' onClick={showFriendsList}>My Friends</button>
-      <button className='btn' onClick={showRequestsList}>Friend Requests</button>
+      <button
+        className='btn'
+        onClick={showFriendsList}
+        disabled={showFriends}>
+          My Friends
+      </button>
+      <button
+        className='btn'
+        onClick={showRequestsList}
+        disabled={!showFriends}>
+          Friend Requests
+      </button>
       <form className='simple-form' onSubmit={handleFriendRequest}>
         <input className='form-input' type='text' placeholder='Username' />
         <input className='form-submit' type='submit' value='Send request' />
