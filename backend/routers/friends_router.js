@@ -74,7 +74,7 @@ friendsRouter.patch("/", async (req, res) => {
   );
 
   if (friendQuery.rowCount === 0) {
-    return res.status(422).json({ error: "Friend not found." });
+    return res.status(404).json({ error: "Friend not found." });
   }
 
   await pool.query(
