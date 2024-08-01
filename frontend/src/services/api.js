@@ -119,24 +119,28 @@ const apiService = {
     return api.get("/stocks", { params: { page, limit } });
   },
 
-  sendFriendRequest: async (userId) => {
-    return api.post(`/friends/?uid=${userId}`);
+  sendFriendRequest: async (username) => {
+    return api.post(`/requests/?name=${username}`);
   },
 
   getFriendRequests: async () => {
-    return api.get("/friends/requests");
+    return api.get("/requests");
   },
 
-  acceptFriendRequest: async (userId) => {
-    return api.patch(`/friends/accept/?uid=${userId}`);
+  acceptFriendRequest: async (username) => {
+    return api.patch(`/requests/?name=${username}&action=accept`);
+  },
+
+  declineFriendRequest: async (username) => {
+    return api.patch(`/requests/?name=${username}&action=decline`);
   },
 
   getFriends: async () => {
     return api.get("/friends");
   },
 
-  deleteFriend: async (userId) => {
-    return api.patch(`/friends/?uid=${userId}`);
+  deleteFriend: async (username) => {
+    return api.patch(`/friends/?name=${username}`);
   },
 };
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Login from './pages/login/Login.jsx';
-import Portfolio from './pages/portfolio/Portfolio.jsx'
+// import Portfolio from './pages/portfolio/Portfolio.jsx'
 import './App.css'
 
 function App() {
@@ -8,8 +8,8 @@ function App() {
   let page;
   if (page_num == 0)
     return <Login onVerification={() => setPageNum(1)}/>
-  else if (page_num == 1)
-    page = <Portfolio/>
+  // else if (page_num == 1)
+    // page = <Portfolio/>
   else if (page_num == 2)
     page = <p>:D</p>
 
