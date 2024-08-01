@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { authenticateToken } from "./middleware/auth.js";
 import { usersRouter } from "./routers/users_router.js";
 import { portfoliosRouter } from "./routers/portfolios_router.js";
@@ -18,6 +19,13 @@ app.use(cookieParser());
 
 app.use(express.static("static"));
 
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 app.use("/api/users", usersRouter);
 app.use("/api/portfolios", authenticateToken, portfoliosRouter);
 app.use("/api/stock-lists", authenticateToken, stocksListsRouter);
@@ -30,7 +38,7 @@ app.use("/api/stats", statsRouter);
 
 // Debugging endpoint to check if we can connect to the server
 app.get("/", (req, res) => {
-  console.log ("Hello :(");
+  console.log("Hello :(");
   res.send("Hello world!");
 });
 
