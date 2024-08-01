@@ -1,0 +1,19 @@
+.page-selector {
+  position: absolute;
+  top: 0%;
+  right: 0%;
+}
+.back-button {
+  background-color: #007bff; /* Green */
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 13px;
+}
+.back-button:hover {
+  background-color: #0d78ee;
+}
+.back-button:disabled, button[disabled] {
+  background-color: #467cb7;
+}
+
