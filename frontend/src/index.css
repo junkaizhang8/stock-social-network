@@ -17,6 +17,11 @@
   display: none !important;
 }
 
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -29,7 +34,6 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -80,8 +84,8 @@ body {
   box-shadow: 0px 0px 24px;
 }
 
-.complex-form input,
-.complex-form textarea {
+input,
+textarea {
   font-family: 'Quicksand', sans-serif;
   font-size: 1em;
   font-weight: 500;
@@ -97,8 +101,8 @@ body {
   resize: vertical;
 }
 
-.complex-form .form-input:active,
-.complex-form .form-input:focus {
+.form-input:active,
+.form-input:focus {
   outline: #007bff solid 2px;
 }
 
@@ -108,7 +112,7 @@ body {
   text-align: center;
 }
 
-.complex-form .form-submit {
+.form-submit {
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -118,8 +122,25 @@ body {
   cursor: pointer;
 }
 
-.complex-form .form-submit:hover {
+.form-submit:hover {
   background-color: #0056b3;
+}
+
+.simple-form {
+  display: flex;
+  flex-direction: row;
+  padding: 30px;
+  gap: 30px;
+  border-radius: 16px;
+}
+
+.simple-form .form-input {
+  width: 70%;
+}
+
+.simple-form .form-submit {
+  width: 10%;
+  min-width: fit-content;
 }
 
 .double-col-list {

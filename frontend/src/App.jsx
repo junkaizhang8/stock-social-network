@@ -1,18 +1,28 @@
 import { useState } from 'react';
 import Login from './pages/login/Login.jsx';
 // import Portfolio from './pages/portfolio/Portfolio.jsx'
+import Friends from './pages/friends/Friends.jsx';
+import AlertContainer from './components/alert-container.jsx';
 import './App.css'
 
 function App() {
-  const [page_num, setPageNum] = useState(0); 
+  const [page_num, setPageNum] = useState(0);
+
   let page;
   if (page_num == 0)
-    return <Login onVerification={() => setPageNum(1)}/>
+    return (
+      <>
+        <Login onVerification={() => setPageNum(1)}/>
+        <AlertContainer/>
+      </>
+    )
   // else if (page_num == 1)
     // page = <Portfolio/>
   else if (page_num == 2)
     page = <p>:D</p>
-
+  else if (page_num == 3)
+    page = <Friends/>
+    
   const logout = () => {
     console.log("logout ):");
     setPageNum(0);
@@ -34,6 +44,12 @@ function App() {
             Profile
         </button>
         <button 
+          onClick={() => setPageNum(3)} 
+          disabled={page_num == 3}
+          className="page-button">
+            Friends
+        </button>
+        <button 
           onClick={logout}
           className="page-button">
             Sign Out
@@ -42,6 +58,7 @@ function App() {
       <div>
        {page}
       </div>
+      <AlertContainer/>
     </>
   )
 }

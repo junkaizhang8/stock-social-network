@@ -16,7 +16,7 @@ requestsRouter.post("/", async (req, res) => {
   const friendQuery = await pool.query(
     `
     SELECT account_id
-    FROM accont
+    FROM account
     WHERE username = $1;
     `,
     [friendName]
@@ -105,7 +105,7 @@ requestsRouter.get("/", async (req, res) => {
 
   const requestQuery = await pool.query(
     `
-    SELECT user_id
+    SELECT user_id, username
     FROM (
       SELECT user2 AS user_id, timestamp
       FROM relationship
@@ -116,7 +116,8 @@ requestsRouter.get("/", async (req, res) => {
       WHERE (user2 = $1 AND type = 'u1request')
       ORDER BY timestamp DESC
       OFFSET $2
-      LIMIT $3);
+      LIMIT $3)
+    JOIN account ON user_id = account_id;
     `,
     [userId, page * limit, limit]
   );
