@@ -32,6 +32,6 @@ stocksRouter.get("/", async (req, res) => {
 
   res.json({
     stocks: stockQuery.rows,
-    total: totalQuery.rows[0].total,
+    total: parseInt(totalQuery.rows[0].total),
   });
 });

@@ -118,7 +118,7 @@ requestsRouter.get("/", async (req, res) => {
 
   res.json({
     requests: requestQuery.rows,
-    total: totalQuery.rows[0].total,
+    total: parseInt(totalQuery.rows[0].total),
   });
 });
 

@@ -48,8 +48,106 @@ stocksListsRouter.post("/", async (req, res) => {
   }
 });
 
-// Get stock lists for a user
+// Get public stock lists
 stocksListsRouter.get("/", async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
+  if (page < 0 || limit < 0) {
+    return res.status(422).json({ error: "Invalid page or limit." });
+  }
+
+  const stockListQuery = await pool.query(
+    `
+    SELECT *
+    FROM stock_collection NATURAL JOIN (
+      SELECT *
+      FROM stock_list
+      WHERE visibility = 'public'
+    )
+    ORDER BY collection_id DESC
+    OFFSET $1
+    LIMIT $2;
+    `,
+    [page * limit, limit]
+  );
+
+  const totalQuery = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM stock_collection NATURAL JOIN (
+      SELECT collection_id
+      FROM stock_list
+      WHERE visibility = 'public');
+    `
+  );
+
+  res.json({
+    stockLists: stockListQuery.rows,
+    total: parseInt(totalQuery.rows[0].total),
+  });
+});
+
+// Get shared stock lists
+stocksListsRouter.get("/shared", async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const userId = req.user.id;
+
+  if (page < 0 || limit < 0) {
+    return res.status(422).json({ error: "Invalid page or limit." });
+  }
+
+  const stockListQuery = await pool.query(
+    `
+    SELECT *
+    FROM (
+      SELECT user2 AS owner
+      FROM relationship
+      WHERE (user1 = $1 AND type = 'friend')
+      UNION
+      SELECT user1 AS owner
+      FROM relationship
+      WHERE (user2 = $1 AND type = 'friend')
+    )
+    NATURAL JOIN stock_collection
+    NATURAL JOIN stock_list
+    WHERE visibility = 'shared'
+    ORDER BY collection_id DESC
+    OFFSET $2
+    LIMIT $3;
+    `,
+    [userId, page * limit, limit]
+  );
+
+  const totalQuery = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM (
+      SELECT user2 AS owner
+      FROM relationship
+      WHERE (user1 = $1 AND type = 'friend')
+      UNION
+      SELECT user1 AS owner
+      FROM relationship
+      WHERE (user2 = $1 AND type = 'friend')
+    )
+    NATURAL JOIN stock_collection
+    NATURAL JOIN stock_list
+    WHERE visibility = 'shared';
+    `,
+    [userId]
+  );
+
+  res.json({
+    stockLists: stockListQuery.rows,
+    total: parseInt(totalQuery.rows[0].total),
+  });
+});
+
+// Get personal stock lists
+stocksListsRouter.get("/me", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -86,6 +184,6 @@ stocksListsRouter.get("/", async (req, res) => {
 
   return res.json({
     stockLists: stockListQuery.rows,
-    total: totalQuery.rows[0].total,
+    total: parseInt(totalQuery.rows[0].total),
   });
 });

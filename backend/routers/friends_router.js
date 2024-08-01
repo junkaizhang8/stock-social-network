@@ -43,7 +43,7 @@ friendsRouter.get("/", async (req, res) => {
 
   res.json({
     friends: friendQuery.rows,
-    total: totalQuery.rows[0].total,
+    total: parseInt(totalQuery.rows[0].total),
   });
 });
 

@@ -78,7 +78,7 @@ portfoliosRouter.get("/", async (req, res) => {
 
   return res.json({
     portfolios: portfolioQuery.rows,
-    total: totalQuery.rows[0].total,
+    total: parseInt(totalQuery.rows[0].total),
   });
 });
 
