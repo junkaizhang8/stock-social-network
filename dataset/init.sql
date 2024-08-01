@@ -27,14 +27,20 @@ CREATE TABLE stock_list (
   collection_id SERIAL PRIMARY KEY REFERENCES stock_collection(collection_id) ON DELETE CASCADE,
   visibility VISIBILITY NOT NULL
 );
+CREATE TABLE stat2_cache (
+  stock1 VARCHAR(5) NOT NULL,
+  stock2 VARCHAR(5) NOT NULL,
+  last_updated DATE DEFAULT NULL,
+  covariance REAL DEFAULT 0,
+  correlation REAL DEFAULT 0,
+  PRIMARY KEY (stock1, stock2)
+);
 CREATE TABLE stock (
-  symbol VARCHAR(5) PRIMARY KEY,
-  open PRICE,
-  high PRICE,
-  low PRICE,
-  close PRICE,
-  volume INTEGER NOT NULL DEFAULT 0,
-  CHECK (open >= 0 AND high >= 0 AND low >= 0 AND close >= 0 AND volume >= 0)
+  symbol VARCHAR(5) NOT NULL PRIMARY KEY,
+  last_updated DATE DEFAULT NULL,
+  beta REAL DEFAULT 0,
+  variance REAL DEFAULT 0,
+  coef REAL DEFAULT 0
 );
 CREATE TABLE stock_history (
   symbol VARCHAR(5),

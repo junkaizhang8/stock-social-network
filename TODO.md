@@ -92,3 +92,28 @@ For each portfolio
 - GSON for json parsing
 
 ### Stock prediction algorithm
+
+# Calculations
+## Beta
+https://www.youtube.com/watch?v=nDcZJcxOwVI
+Get close price for the start of the month for AAL 
+
+SELECT close, timestamp
+FROM Old_Stocks, (SELECT EXTRACT(YEAR FROM timestamp) AS y, EXTRACT(MONTH FROM timestamp) AS m, MIN (EXTRACT (DAY FROM timestamp))
+                  FROM Old_Stocks
+                  WHERE symbol='AAL'
+                  GROUP BY y, m) Days
+WHERE Days.y=EXTRACT(YEAR FROM timestamp) AND Days.m=EXTRACT (MONTH FROM timestamp) AND Days.min=EXTRACT (DAY FROM timestamp);
+
+## Correlation
+
+## Covariance
+
+## Coefficient of Variation
+ 
+## Variance
+ Y = (X - E(X))^2
+ E (Y)
+
+## Standard Deviation
+ sqrt(variance)
