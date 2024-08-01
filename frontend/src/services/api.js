@@ -5,6 +5,8 @@ export const api = axios.create({
   withCredentials: true, // Send cookies when making requests
 });
 
+// NOTE: The service does not perform input validation,
+// make sure to validate inputs before calling these functions
 const apiService = {
   signUp: async (username, password) => {
     return api.post("/users/signup", {

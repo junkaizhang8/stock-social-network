@@ -1,0 +1,14 @@
+.sign-in-form {
+  width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.new-user-select {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.new-user-select:hover {
+  color: rgb(0, 120, 200);
+}
