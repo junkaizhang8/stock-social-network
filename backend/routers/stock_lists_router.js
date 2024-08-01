@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { pool } from "../db.js";
+import { reviewsRouter } from "./reviews_router.js";
 
 export const stocksListsRouter = Router();
+
+stocksListsRouter.use("/:listId/reviews", reviewsRouter);
 
 // Create a new stock list
 stocksListsRouter.post("/", async (req, res) => {
