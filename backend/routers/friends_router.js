@@ -16,7 +16,7 @@ friendsRouter.get("/", async (req, res) => {
 
   const friendQuery = await pool.query(
     `
-    SELECT user_id
+    SELECT user_id, username
     FROM (
       SELECT user2 AS user_id, timestamp
       FROM relationship
@@ -27,7 +27,8 @@ friendsRouter.get("/", async (req, res) => {
       WHERE (user2 = $1 AND type = 'friend')
       ORDER BY timestamp DESC
       OFFSET $2
-      LIMIT $3);
+      LIMIT $3)
+    JOIN account ON user_id = account_id;
     `,
     [userId, page * limit, limit]
   );
@@ -49,13 +50,28 @@ friendsRouter.get("/", async (req, res) => {
 
 // Delete a friend
 friendsRouter.patch("/", async (req, res) => {
-  const friendId = parseInt(req.query.uid);
+  const friendName = req.query.name;
 
   const userId = req.user.id;
 
-  if (!friendId) {
-    return res.status(422).json({ error: "User ID required." });
+  if (!friendName) {
+    return res.status(422).json({ error: "Username required." });
   }
+
+  const friendIdQuery = await pool.query(
+    `
+    SELECT account_id
+    FROM account
+    WHERE username = $1;
+    `,
+    [friendName]
+  );
+
+  if (friendIdQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Friend not found." });
+  }
+
+  const friendId = friendIdQuery.rows[0].account_id;
 
   if (friendId === userId) {
     return res.status(422).json({ error: "Cannot delete self." });

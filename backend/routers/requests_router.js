@@ -5,13 +5,28 @@ export const requestsRouter = Router();
 
 // Send a friend request
 requestsRouter.post("/", async (req, res) => {
-  const friendId = parseInt(req.query.uid);
+  const friendName = req.query.name;
+
+  if (!friendName) {
+    return res.status(422).json({ error: "Username required." });
+  }
 
   const userId = req.user.id;
 
-  if (!friendId) {
-    return res.status(422).json({ error: "User ID required." });
+  const friendQuery = await pool.query(
+    `
+    SELECT account_id
+    FROM account
+    WHERE username = $1;
+    `,
+    [friendName]
+  );
+
+  if (friendQuery.rowCount === 0) {
+    return res.status(404).json({ error: "User not found." });
   }
+
+  const friendId = friendQuery.rows[0].account_id;
 
   if (friendId === userId) {
     return res.status(422).json({ error: "Cannot send request to self." });
@@ -90,7 +105,7 @@ requestsRouter.get("/", async (req, res) => {
 
   const requestQuery = await pool.query(
     `
-    SELECT user_id
+    SELECT user_id, username
     FROM (
       SELECT user2 AS user_id, timestamp
       FROM relationship
@@ -101,7 +116,8 @@ requestsRouter.get("/", async (req, res) => {
       WHERE (user2 = $1 AND type = 'u1request')
       ORDER BY timestamp DESC
       OFFSET $2
-      LIMIT $3);
+      LIMIT $3)
+    JOIN account ON user_id = account_id;
     `,
     [userId, page * limit, limit]
   );
@@ -124,14 +140,29 @@ requestsRouter.get("/", async (req, res) => {
 
 // Accept/decline a friend request
 requestsRouter.patch("/", async (req, res) => {
-  const friendId = parseInt(req.query.uid);
+  const friendName = req.query.name;
   const action = req.query.action;
 
   const userId = req.user.id;
 
-  if (!friendId) {
-    return res.status(422).json({ error: "User ID required." });
+  if (!friendName) {
+    return res.status(422).json({ error: "Username required." });
   }
+
+  const friendQuery = await pool.query(
+    `
+    SELECT account_id
+    FROM account
+    WHERE username = $1;
+    `,
+    [friendName]
+  );
+
+  if (friendQuery.rowCount === 0) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const friendId = friendQuery.rows[0].account_id;
 
   if (friendId === userId) {
     return res.status(422).json({ error: "Cannot handle request from self." });

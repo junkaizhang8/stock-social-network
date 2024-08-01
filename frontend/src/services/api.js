@@ -48,7 +48,7 @@ const apiService = {
   },
 
   getPortfolios: async (page = 0, limit = 10) => {
-    return api.get("/portfolios", { params: { page, limit } });
+    return api.get(`/portfolios/?page=${page}&limit=${limit}`);
   },
 
   getPortfolioStocks: async (portfolioId) => {
@@ -90,15 +90,15 @@ const apiService = {
   },
 
   getPublicStockLists: async (page = 0, limit = 10) => {
-    return api.get("/stock-lists", { params: { page, limit } });
+    return api.get(`/stock-lists/?page=${page}&limit=${limit}`);
   },
 
   getSharedStockLists: async (page = 0, limit = 10) => {
-    return api.get("/stock-lists/shared", { params: { page, limit } });
+    return api.get(`/stock-lists/shared/?page=${page}&limit=${limit}`);
   },
 
   getPersonalStockLists: async (page = 0, limit = 10) => {
-    return api.get("/stock-lists/me", { params: { page, limit } });
+    return api.get(`/stock-lists/me/?page=${page}&limit=${limit}`);
   },
 
   getStockListStocks: async (listId) => {
@@ -110,33 +110,37 @@ const apiService = {
   },
 
   getReviews: async (listId, page = 0, limit = 10) => {
-    return api.get(`/stock-lists/${listId}/reviews`, {
-      params: { page, limit },
-    });
+    return api.get(
+      `/stock-lists/${listId}/reviews/?page=${page}&limit=${limit}`
+    );
   },
 
   getStocks: async (page = 0, limit = 10) => {
-    return api.get("/stocks", { params: { page, limit } });
+    return api.get(`/stocks/?page=${page}&limit=${limit}`);
   },
 
-  sendFriendRequest: async (userId) => {
-    return api.post(`/friends/?uid=${userId}`);
+  sendFriendRequest: async (name) => {
+    return api.post(`/requests/?name=${name}`);
   },
 
   getFriendRequests: async () => {
-    return api.get("/friends/requests");
+    return api.get("/requests");
   },
 
-  acceptFriendRequest: async (userId) => {
-    return api.patch(`/friends/accept/?uid=${userId}`);
+  acceptFriendRequest: async (name) => {
+    return api.patch(`/requests/?name=${name}&action=accept`);
   },
 
-  getFriends: async () => {
-    return api.get("/friends");
+  declineFriendRequest: async (name) => {
+    return api.patch(`/requests/?name=${name}&action=decline`);
   },
 
-  deleteFriend: async (userId) => {
-    return api.patch(`/friends/?uid=${userId}`);
+  getFriends: async (page = 0, limit = 10) => {
+    return api.get(`/friends/?page=${page}&limit=${limit}`);
+  },
+
+  deleteFriend: async (name) => {
+    return api.patch(`/friends/?name=${name}`);
   },
 };
 
