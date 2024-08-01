@@ -141,12 +141,13 @@ stocksListsRouter.get("/", async (req, res) => {
 
   const stockListQuery = await pool.query(
     `
-    SELECT *
+    SELECT collection_id, name, owner, username AS owner_name, visibility
     FROM stock_collection NATURAL JOIN (
       SELECT *
       FROM stock_list
       WHERE visibility = 'public'
     )
+    JOIN account ON owner = account_id
     ORDER BY collection_id DESC
     OFFSET $1
     LIMIT $2;
@@ -183,7 +184,7 @@ stocksListsRouter.get("/shared", async (req, res) => {
 
   const stockListQuery = await pool.query(
     `
-    SELECT *
+    SELECT collection_id, name, owner, username AS owner_name, visibility
     FROM (
       SELECT user2 AS owner
       FROM relationship
@@ -195,6 +196,7 @@ stocksListsRouter.get("/shared", async (req, res) => {
     )
     NATURAL JOIN stock_collection
     NATURAL JOIN stock_list
+    JOIN account ON owner = account_id
     WHERE visibility = 'shared'
     ORDER BY collection_id DESC
     OFFSET $2
