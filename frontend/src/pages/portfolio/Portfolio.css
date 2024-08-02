@@ -16,4 +16,8 @@
 .back-button:disabled, button[disabled] {
   background-color: #467cb7;
 }
+.new-coll-form {
+  width: auto;
+  display: inline;
+}
 

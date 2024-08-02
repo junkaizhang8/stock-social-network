@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import apiService from '../../services/api.js';
+import alert from '../../utils/alert.js'
 import "./Portfolio.css"
 
 const PortfolioTile = ({ item, setFocus }) => {
@@ -33,6 +34,9 @@ const Portfolio = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [focus, setFocus] = useState(null);
 
+  const [createType, setCreate] = useState("Portfolio");
+  const [shareType, setShare] = useState("public");
+
   useEffect (() => {
     getPortfolios();
   }, []);
@@ -50,6 +54,25 @@ const Portfolio = () => {
     });
   }
 
+  const createNewCollection = async (e) => {
+    console.log(shareType);
+    const name = e.target[0].value;
+    e.preventDefault();
+    let res;
+    try {
+      if (createType == "Portfolio")
+        res = await apiService.createPortfolio(name);
+
+      else {
+        res = await apiService.createStockList(name, shareType);
+      }
+
+      getPortfolios();
+    } catch (e) {
+      alert.error(e.response.data.error);
+    }
+  }
+
   if (focus != null) {
     return (
       <>
@@ -58,15 +81,30 @@ const Portfolio = () => {
     );
   }
 
-  else if (portfolios == undefined || portfolios.length == 0)
-    return (
-      <>
-        <p>No portfolios</p>
-      </>
-    );
   else
     return (
       <>
+        <form className="simple-form" onSubmit={createNewCollection}>
+          <input className="form-input" 
+                 type="text"
+                 placeholder="Create a new stock"
+                 required/>
+          <input className="form-submit" 
+                 type="submit"
+                 value="Create"/>
+
+          <select value={createType} onChange={(e) => setCreate(e.target.value)}>
+            <option value="Portfolio">Portfolio</option>
+            <option value="Stock List">Stock List</option>
+          </select>
+
+          <select value={shareType} onChange={(e) => setShare(e.target.value)}>
+            <option value="public">Public</option>
+            <option value="shared">Shared</option>
+            <option value="private">Private</option>
+          </select>
+        </form>
+
         {portfolios.map((item, i) => {
           return (
             <PortfolioTile
