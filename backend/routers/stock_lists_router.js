@@ -54,12 +54,14 @@ stocksListsRouter.post("/", async (req, res) => {
 // Add/remove shares to a stock list
 stocksListsRouter.post("/:id", async (req, res) => {
   const listId = parseInt(req.params.id);
-  const symbol = req.body.symbol;
-  const shares = parseInt(req.body.shares);
+  const symbol = req.body.symbol || "";
+  const shares = parseInt(req.body.shares) || 0;
 
   if (symbol === "" || shares === 0) {
     return res.status(422).json({ error: "Invalid symbol or share quantity." });
   }
+
+  const mode = shares > 0 ? "add" : "remove";
 
   const userIdQuery = await pool.query(
     `
@@ -80,9 +82,10 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
   const stockExistsQuery = await pool.query(
     `
-    SELECT close AS price
-    FROM stock
-    WHERE symbol = $1;
+    SELECT 1
+    FROM stock_history
+    WHERE symbol = $1
+    LIMIT 1;
     `,
     [symbol]
   );
@@ -93,7 +96,7 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
   const stockInListQuery = await pool.query(
     `
-    SELECT 1
+    SELECT shares
     FROM in_collection
     WHERE collection_id = $1 AND symbol = $2;
     `,
@@ -103,6 +106,24 @@ stocksListsRouter.post("/:id", async (req, res) => {
   try {
     // If stock already exists in stock list, update shares
     if (stockInListQuery.rowCount > 0) {
+      const currentShares = stockInListQuery.rows[0].shares;
+
+      if (mode === "remove" && currentShares < -shares) {
+        return res.status(422).json({ error: "Insufficient shares." });
+      }
+
+      if (mode === "remove" && currentShares === -shares) {
+        await pool.query(
+          `
+          DELETE FROM in_collection
+          WHERE collection_id = $1 AND symbol = $2;
+          `,
+          [listId, symbol]
+        );
+
+        return res.json({ message: "Stock removed." });
+      }
+
       await pool.query(
         `
         UPDATE in_collection
@@ -112,7 +133,12 @@ stocksListsRouter.post("/:id", async (req, res) => {
         [shares, listId, symbol]
       );
 
-      return res.json({ message: "Stock added." });
+      return res.json({ message: "Stock list updated." });
+    }
+
+    // If stock does not exist in stock list and trying to remove, return error
+    if (mode === "remove") {
+      return res.status(422).json({ error: "Stock not in list." });
     }
 
     // If stock does not exist in stock list, add stock
