@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Login from './pages/login/Login.jsx';
 import Friends from './pages/friends/Friends.jsx';
-import AlertContainer from './components/alert-container.jsx';
+import AlertContainer from './components/alert-container/AlertContainer.jsx';
 import Portfolio from './pages/portfolio/Portfolio.jsx'
 import apiService from './services/api.js';
 import './App.css'

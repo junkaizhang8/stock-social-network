@@ -1,0 +1,21 @@
+.stock-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border-radius: 20px;
+  z-index: 2000;
+}
+
+.stock-graph {
+  width: 50%;
+  margin: auto;
+}
+
+.stock-price {
+  margin-bottom: 10px;
+}
