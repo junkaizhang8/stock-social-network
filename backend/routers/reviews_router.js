@@ -114,8 +114,8 @@ reviewsRouter.get("/", async (req, res) => {
   if (visibility === "shared" && !isOwner) {
     const reviewQuery = await pool.query(
       `
-      SELECT collection_id, reviewer, text
-      FROM review
+      SELECT collection_id, reviewer, username AS reviewer_name, text
+      FROM review JOIN account on reviewer = account_id
       WHERE collection_id = $1 AND reviewer = $2;
       `,
       [listId, userId]
@@ -129,8 +129,8 @@ reviewsRouter.get("/", async (req, res) => {
 
   const reviewQuery = await pool.query(
     `
-    SELECT *
-    FROM review
+    SELECT collection_id, reviewer, username AS reviewer_name, text
+    FROM review JOIN account on reviewer = account_id
     WHERE collection_id = $1
     ORDER BY reviewer DESC
     OFFSET $2
@@ -152,4 +152,44 @@ reviewsRouter.get("/", async (req, res) => {
     reviews: reviewQuery.rows,
     total: parseInt(totalQuery.rows[0].total),
   });
+});
+
+// Edit a review
+reviewsRouter.patch("/", async (req, res) => {
+  const listId = req.params.listId;
+  const text = req.body.text;
+
+  const userId = req.user.id;
+
+  if (text === "") {
+    return res.status(422).json({ error: "Text required." });
+  }
+
+  const reviewExistsQuery = await pool.query(
+    `
+    SELECT 1
+    FROM review
+    WHERE collection_id = $1 AND reviewer = $2;
+    `,
+    [listId, userId]
+  );
+
+  if (reviewExistsQuery.rowCount === 0) {
+    return res.status(422).json({ error: "Review does not exist." });
+  }
+
+  try {
+    await pool.query(
+      `
+      UPDATE review
+      SET text = $1
+      WHERE collection_id = $2 AND reviewer = $3;
+      `,
+      [text, listId, userId]
+    );
+
+    return res.json({ message: "Review edited." });
+  } catch (err) {
+    return res.status(422).json({ error: "Could not edit review." });
+  }
 });

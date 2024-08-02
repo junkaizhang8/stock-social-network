@@ -115,10 +115,6 @@ const apiService = {
     );
   },
 
-  getStocks: async (page = 0, limit = 10) => {
-    return api.get(`/stocks/?page=${page}&limit=${limit}`);
-  },
-
   sendFriendRequest: async (name) => {
     return api.post(`/requests/?name=${name}`);
   },
@@ -141,6 +137,27 @@ const apiService = {
 
   deleteFriend: async (name) => {
     return api.patch(`/friends/?name=${name}`);
+  },
+
+  getStock: async (symbol) => {
+    return api.get(`/stocks/${symbol}`);
+  },
+
+  getStockHistory: async (symbol, start = "", end = "") => {
+    let params = start !== "" || end !== "" ? "/?" : "";
+    params += start !== "" ? `start=${start}` : "";
+    params += start !== "" && end !== "" ? "&" : "";
+    params += end !== "" ? `end=${end}` : "";
+
+    return api.get(`/stocks/${symbol}/history${params}`);
+  },
+
+  getStockStats: async (symbol) => {
+    return api.get(`/stats/stat1?sym=${symbol}`);
+  },
+
+  getStockStats2: async (sym1, sym2) => {
+    return api.get(`/stats/stat2?sym1=${sym1}&sym2=${sym2}`);
   },
 };
 

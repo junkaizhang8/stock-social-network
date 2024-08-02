@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import apiService from '../../services/api';
 import alert from '../../utils/alert';
+import Stock from '../../components/stock/Stock';
 import './Login.css';
 
 const Login = ({ onVerification }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [hidden, setHidden] = useState(false);
+  const [symbol, setSymbol] = useState("");
 
   const handleVerification = (res) => {
     res.then(() => {
@@ -13,13 +16,13 @@ const Login = ({ onVerification }) => {
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
-  }
+  };
 
   const login = (e) => {
     e.preventDefault();
     if (username != "" && password != "")
       handleVerification(apiService.signIn(username, password));
-  }
+  };
 
   const signup = (e) => {
     e.preventDefault();
@@ -35,16 +38,32 @@ const Login = ({ onVerification }) => {
         e.target[0].value = "";
         e.target[1].value = "";
       });
-  }
+  };
 
   const toggleForm = () => {
     const forms = document.querySelectorAll('.complex-form');
     forms.forEach(form => form.classList.toggle('hidden'));
-  }
+  };
 
+  const clicking = () => {
+    apiService.getStockStats2("AAPL", "AAPL").then((res) => {
+      console.log(res.data);
+    }).catch((e) => {
+      alert.error(e.response.data.error);
+    });
+  };
+
+  const trigger = () => {
+    setHidden(false);
+    setSymbol("AAPL");
+  }
 
   return (
   <>
+    <button onClick={trigger}>Click me!</button>
+    <div className={hidden ? "hidden" : undefined}>
+      <Stock symbol={symbol} setHidden={setHidden}></Stock>
+    </div>
     <form className="complex-form sign-in-form" onSubmit={login}>
       <div className="form-title">Sign In</div>
       <input
