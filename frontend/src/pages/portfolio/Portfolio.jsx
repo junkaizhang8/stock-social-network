@@ -5,9 +5,10 @@ import "./Portfolio.css"
 
 const PortfolioTile = ({ item, setFocus }) => {
   return (
-    <div>
+    <div className="portfolio-tile">
+      <p className="portfolio-type">{item.type}</p>
       <a 
-        className="portfolio-tile" 
+        className="portfolio-tile-name" 
         onClick={() => setFocus(item)}>
           {item.name}
       </a>
@@ -16,6 +17,34 @@ const PortfolioTile = ({ item, setFocus }) => {
 };
 
 const PortfolioViewer = ({ item, goBack }) => {
+  let sym;
+  let n;
+
+  const handleSubmit = async (e) => {
+    try {
+      let res;
+      e.preventDefault();
+
+      const num = parseInt(n);
+      if (!isFinite(num))
+        return;
+
+      if (item.type == "Portfolio")
+        res = await apiService.purchaseStock(item.collection_id, sym, num);
+      else if (item.type == "Stock List")
+        res = await apiService.addSharesToList(item.collection_id, sym, num);
+
+      const body = res.data;
+      if (res.status != 200)
+        alert.error(body.error);
+      else
+        alert.success(body.message);
+
+    } catch(e) {
+      alert.error(e.response.data.error);
+    }
+  }
+
   return (
     <>
       <div style={styles.backButtonContainer}>
@@ -26,36 +55,96 @@ const PortfolioViewer = ({ item, goBack }) => {
         </button>
       </div>
       <p>{item.name}</p>
+      <form className="simple-form"
+          onClick={(e) => handleSubmit(e)}>
+        <input className="form-input" 
+          type="text"
+          placeholder={`Enter The Symbol Of A Stock You Want To Add To Your ${item.type}`}
+          onChange={(e) => sym = e.target.value}
+          required/>
+        <input className="form-input"
+          type="text"
+          placeholder="How Much"
+          onChange={(e) => n = e.target.value}
+          required/>
+        <input className="form-submit" 
+          type="submit"
+          value="Add"/>
+      </form>
     </>
   );
 };
 
 const Portfolio = () => {
-  const [portfolios, setPortfolios] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [typeFilter, setFilter] = useState("Portfolio");
   const [focus, setFocus] = useState(null);
 
   const [createType, setCreate] = useState("Portfolio");
   const [shareType, setShare] = useState("public");
 
   useEffect (() => {
-    getPortfolios();
+    getCollections(typeFilter);
   }, []);
 
-  const getPortfolios = () => {
-    apiService.getPortfolios(0, 200).then((res) => {
-      const body = res.data;
-      if (res.status != 200)
-        console.log(body.error);
-      else {
-        setPortfolios(body.portfolios);
+  const getCollections = async (filter) => {
+    try {
+      let res;
+      if (filter == "Portfolio")
+        res = await apiService.getPortfolios(0, 200);
+      else if (filter == "public")
+        res = await apiService.getPublicStockLists(0, 200);
+      else if (filter == "shared")
+        res = await apiService.getSharedStockLists(0, 200);
+      else if (filter == "private")
+        res = await apiService.getPersonalStockLists(0, 200);
+      else if (filter == "all")
+        res = await apiService.getPersonalStockLists(0, 200);
+      else
+        return ;
+
+      if (res.status != 200) {
+        alert.error(body.error);
+        return ;
       }
-    }).catch((e) => {
-      console.log(e.message);
-    });
+
+      const body = res.data;
+      if (filter == "private")
+        setCollections(body.stockLists.map((item, _) => {
+          if (item.visibility == "private")
+            return {
+              collection_id: item.collection_id,
+              visibility: item.visibility,
+              name: item.name,
+              type: "Stock List"
+            }
+        }));
+      else if (filter == "Portfolio")
+        setCollections(body.portfolios.map((item, _) => {
+          return {
+            collection_id: item.collection_id,
+            balance: item.balance,
+            name: item.name,
+            type: "Portfolio"
+          }
+        }));
+      else
+        setCollections(body.stockLists.map((item, _) => {
+          return {
+            collection_id: item.collection_id,
+            visibility: item.visibility,
+            name: item.name,
+            type: "Stock List"
+          }
+        }));
+
+    } catch(e) {
+      console.log(e);
+    }
   }
 
+
   const createNewCollection = async (e) => {
-    console.log(shareType);
     const name = e.target[0].value;
     e.preventDefault();
     let res;
@@ -67,7 +156,7 @@ const Portfolio = () => {
         res = await apiService.createStockList(name, shareType);
       }
 
-      getPortfolios();
+      getCollections(typeFilter);
     } catch (e) {
       alert.error(e.response.data.error);
     }
@@ -87,7 +176,7 @@ const Portfolio = () => {
         <form className="simple-form" onSubmit={createNewCollection}>
           <input className="form-input" 
                  type="text"
-                 placeholder="Create a new stock"
+                 placeholder={`Create a New ${createType}`}
                  required/>
           <input className="form-submit" 
                  type="submit"
@@ -105,14 +194,27 @@ const Portfolio = () => {
           </select>
         </form>
 
-        {portfolios.map((item, i) => {
-          return (
-            <PortfolioTile
-              key={i}
-              item={item} 
-              setFocus={setFocus}/>
-          )
-        })}
+        <div>
+          <div>
+            {collections.map((item, i) => {
+              if (item != undefined)
+                return (
+                  <PortfolioTile
+                  key={i}
+                  item={item} 
+                  setFocus={setFocus}/>
+                );
+            })}
+          </div>
+
+          <select value={typeFilter} onChange={(e) => {setFilter(e.target.value); getCollections(e.target.value)}}>
+            <option value="Portfolio">Portfolios</option>
+            <option value="all">All Stock Lists</option>
+            <option value="public">Public Stock Lists</option>
+            <option value="shared">Shared With Me</option>
+            <option value="private">Private to Me</option>
+          </select>
+        </div>
       </>
     );
 };

@@ -34,7 +34,7 @@ const apiService = {
   },
 
   purchaseStock: async (portfolioId, stockSymbol, quantity) => {
-    return api.post(`/portfolios/${portfolioId}/stocks`, {
+    return api.post(`/portfolios/${portfolioId}`, {
       symbol: stockSymbol,
       shares: quantity,
     });

@@ -45,7 +45,6 @@ portfoliosRouter.post("/:id", async (req, res) => {
   const portfolioId = parseInt(req.params.id);
   const symbol = req.body.symbol;
   const shares = parseInt(req.body.shares);
-
   if (symbol === "" || shares === 0) {
     return res.status(422).json({ error: "Invalid symbol or share quantity." });
   }
@@ -70,7 +69,7 @@ portfoliosRouter.post("/:id", async (req, res) => {
   const stockExistsQuery = await pool.query(
     `
     SELECT close AS price
-    FROM stock
+    FROM stock_history
     WHERE symbol = $1;
     `,
     [symbol]

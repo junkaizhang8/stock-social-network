@@ -20,4 +20,17 @@
   width: auto;
   display: inline;
 }
-
+.portfolio-tile {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 20%;
+}
+.portfolio-type{
+  text-align: center;
+  font-size: 16px;
+  margin-right: 10px;
+}
+.portfolio-tile-name {
+  margin-left: 10px;
+}
