@@ -25,7 +25,7 @@ function App() {
     page = <Friends/>
     
   const logout = () => {
-    apiService.signOut();
+//    apiService.signOut();
     setPageNum(0);
     console.log("signed out");
   }

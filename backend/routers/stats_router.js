@@ -26,7 +26,8 @@ async function get_stat1_cache (sym) {
   let beta; let varr; let coef;
 
   /* if cache is out of date, recalculate values */
-  if ((cache.rowCount == 0)
+  if ((cache.rowCount == 0) 
+  || (cache.rows[0].last_updated == null)
   || (cache.rows[0].last_updated.toString() !== sym_date.rows[0].date.toString())) {
     beta = await get_beta(sym); 
     varr = await get_var(sym);
@@ -52,7 +53,8 @@ async function get_stat1_cache (sym) {
     console.log("inserting into cache");
 
   /* update entry in cache */
-  } else if (cache.rows[0].last_updated.toString() != sym_date.rows[0].date.toString()) {
+  } else if ((cache.rows[0].last_updated == null)
+        || (cache.rows[0].last_updated.toString() != sym_date.rows[0].date.toString())) {
     await pool.query(
       `
       UPDATE stock
@@ -269,7 +271,7 @@ statsRouter.get("/stat1", authenticateToken, async (req, res) => {
   const sym = req.query.sym;
   const data = await get_stat1_cache(sym);
 
-  res.json({
+  res.status(200).json({
     variance: data.varr,
     beta: data.beta,
     cv: data.coef,
