@@ -238,6 +238,27 @@ const Stock = ({ symbol, setHidden, held }) => {
     setGraphMode("Max");
   };
 
+  const plotFuture = () => {
+    const sh = stockHistory[stockHistory.length-1];
+    const newData = [...stockHistory];
+    const isd = stockHistory[0].close;
+    const dh = new Date(sh.date);
+    const y = dh.getFullYear();
+
+    for (let i = 1; i < 3; i++) {
+      newData.push({
+        close: (sh.close-isd)*i,
+        date: dh.toISOString()
+      });
+
+      dh.setFullYear(dh.getFullYear() + 1);
+    }
+
+    setGraphData(transformToGraphData(newData));
+    setUnit("year");
+    setGraphMode("Future");
+  }
+
   const destroy = (e) => {
     if (e.target !== e.currentTarget) return;
     setHidden(true);
@@ -259,6 +280,7 @@ const Stock = ({ symbol, setHidden, held }) => {
         <button className="btn" onClick={plotYearly} disabled={graphMode === "1Y"}>1Y</button>
         <button className="btn" onClick={plotFiveYears} disabled={graphMode === "5Y"}>5Y</button>
         <button className="btn" onClick={plotMax} disabled={graphMode === "Max"}>Max</button>
+        <button className="btn" onClick={plotFuture} disabled={graphMode === "Future"}>Future</button>
         <div className="stock-graph">
           <Line data={graphData} plugins={[hoverLine]} options={options}/>
         </div>
