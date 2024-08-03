@@ -244,14 +244,14 @@ const Stock = ({ symbol, setHidden, held }) => {
     const isd = stockHistory[0].close;
     const dh = new Date(sh.date);
     const y = dh.getFullYear();
+    const slope = (sh.close - isd) / (stockHistory.length - 1);
 
     for (let i = 1; i < 3; i++) {
+      dh.setFullYear(dh.getFullYear() + 1);
       newData.push({
-        close: (sh.close-isd)*i,
+        close: sh.close + slope * i * 365,
         date: dh.toISOString()
       });
-
-      dh.setFullYear(dh.getFullYear() + 1);
     }
 
     setGraphData(transformToGraphData(newData));
