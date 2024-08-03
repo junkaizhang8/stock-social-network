@@ -1,33 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState } from 'react';
+import Login from './pages/login/Login.jsx';
+import Friends from './pages/friends/Friends.jsx';
+import AlertContainer from './components/alert-container/AlertContainer.jsx';
+import Portfolio from './pages/portfolio/Portfolio.jsx'
+import apiService from './services/api.js';
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [page_num, setPageNum] = useState(0);
+
+  let page;
+  if (page_num == 0)
+    return (
+      <>
+        <Login onVerification={() => setPageNum(1)}/>
+        <AlertContainer/>
+      </>
+    )
+  else if (page_num == 1)
+    page = <Portfolio/>
+  else if (page_num == 2)
+    page = <Friends/>
+    
+  const logout = () => {
+    apiService.signOut();
+    setPageNum(0);
+    console.log("signed out");
+  }
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+      <div className="page-selector">
+        <button 
+          onClick={() => setPageNum(1)} 
+          disabled={page_num == 1}
+          className="page-button">
+            Portfolios 
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+        <button 
+          onClick={() => setPageNum(2)} 
+          disabled={page_num == 2}
+          className="page-button">
+            Friends
+        </button>
+        <button 
+          onClick={logout}
+          className="page-button">
+            Sign Out
+        </button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <div>
+       {page}
+      </div>
+      <AlertContainer/>
     </>
   )
 }

@@ -1,0 +1,16 @@
+.sign-in-form {
+  width: 600px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.new-user-select {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.new-user-select:hover {
+  color: rgb(0, 120, 200);
+}
