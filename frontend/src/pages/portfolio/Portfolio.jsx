@@ -44,10 +44,10 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [presentValue, setPresentValue] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [showTransactions, setShowTransactions] = useState(false);
+  const [reviewmode, setReviewMode] = useState(false);
   
   let sym;
   let n;
-  let rev = "";
 
   useEffect(() => {
     getStocks();
@@ -155,12 +155,39 @@ const PortfolioViewer = ({ item, goBack }) => {
     }
   }
 
-  const handleRevSub = async () => {
+  const handleRevSub = async (e) => {
+    e.preventDefault();
     if (item.type != "Stock List")
       return;
 
-    apiService.createReview(item.collection_id, rev).then(() => {
-      alert.success("Added review!");
+    const rev = e.target[0].value;
+    e.target[0].value = "";
+
+    if (!reviewmode)
+      apiService.createReview(item.collection_id, rev).then(() => {
+        alert.success("Added review!");
+        getReviews();
+      }).catch((e) => {
+        alert.error(e.response.data.error);
+      })
+
+    else
+      apiService.editReview(item.collection_id, rev).then(() => {
+        alert.success("Edited review");
+        getReviews();
+      }).catch((e) => {
+        alert.error(e.response.data.error);
+      })
+
+    setReviewMode(false);
+  }
+
+  const handleDelRev = async () => {
+    if (item.type != "Stock List")
+      return;
+
+    apiService.deleteReview(item.collection_id).then(() => {
+      alert.success("Deleted review");
       getReviews();
     }).catch((e) => {
       alert.error(e.response.data.error);
@@ -345,6 +372,65 @@ const PortfolioViewer = ({ item, goBack }) => {
             type="text"
             placeholder="Amount"
             onChange={(e) => n = e.target.value}
+          <form className="simple-form" onSubmit={updateBalance}>
+            <input className='form-input' type='text' placeholder='Amount'/>
+            <input className='form-submit' type='submit' value={mode}/>
+          </form>
+        </div>)
+      }
+      <select onChange={(e) => setTransactionMode(e.target.value)}>
+        <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
+        <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
+      </select>
+      <form className="simple-form"
+          onSubmit={handleSubmit}>
+        <input className="form-input" 
+          type="text"
+          placeholder={"Stock Symbol"}
+          onChange={(e) => sym = e.target.value}
+          required/>
+        <input className="form-input"
+          type="text"
+          placeholder="Amount"
+          onChange={(e) => n = e.target.value}
+          required/>
+        <input className="form-submit" 
+          type="submit"
+          value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
+      </form>
+      <div className={hidden ? "hidden" : undefined}>
+        <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
+      </div>
+
+      <div style={{display: "flex" }}>
+        {stocks.map((item, i) => {
+          return (
+            <StockButton id={i} item={item}/>
+          )
+        })}
+      </div>
+      
+      <Table
+        caption="Covariance Matrix"
+        data={covarMatrix}
+        getName={(i) => stocks[i].symbol}
+        getData={(i, j) => covarMatrix[i][j]}/>
+
+      <div style={{paddingTop:30}}>
+      <Table
+        caption="Correlation Matrix"
+        data={corrMatrix}
+        getName={(i) => stocks[i].symbol}
+        getData={(i, j) => corrMatrix[i][j]}/>
+      </div>
+
+        {item.type == "Stock List" &&
+      <div> 
+        <h3>Reviews</h3>
+        <form className="simple-form" onSubmit={(e) => handleRevSub(e)}>
+          <input className="form-input"
+            type="text"
+            placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
             required/>
           <input className="form-submit" 
             type="submit"
@@ -410,6 +496,17 @@ const PortfolioViewer = ({ item, goBack }) => {
               <p className='col-3 bold'>Shares</p>
               <p className='col-3 bold'>Delta</p>
               <p className='col-3 bold'>Timestamp</p>
+
+        {reviews.map((item, i) => {
+          return (
+            <div className="portfolio-tile">
+              <p id={i} className="portfolio-type">`"{item.text}"`</p>
+              <a id={i} onClick={() => handleDelRev()} className="portfolio-tile-name">
+                delete?
+              </a>
+              <a id={i} onClick={() => setReviewMode(true)} className="portfolio-tile-name">
+                edit?
+              </a>
             </div>
           )}
           {transactions.map((item, i) => {
