@@ -255,27 +255,11 @@ const PortfolioViewer = ({ item, goBack }) => {
           type="submit"
           value="Add"/>
       </form>
-      {(
-        <div>
-          <h2>Stocks</h2>
-          <div>
-            {stocks.map((stock, i) => (
-              <div key={i} onClick={(e) => showStockDetails(e, stock.symbol)}>
-                <p>{stock.symbol}</p>
-                <p>{stock.shares}</p>
-                <form onSubmit={(e) => removeShares(e, stock.symbol)}>
-                  <input type="text" placeholder="Quantity"/>
-                  <input type="submit" value="Remove"/>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-        )}
       <div className={hidden ? "hidden" : undefined}>
         <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
+      </div>
 
-      <div styles={{display: "flex" }}>
+      <div style={{display: "flex" }}>
         {stocks.map((item, i) => {
           return (
             <StockButton id={i} item={item}/>
