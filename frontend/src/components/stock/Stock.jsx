@@ -244,7 +244,8 @@ const Stock = ({ symbol, setHidden, held }) => {
     const isd = stockHistory[0].close;
     const dh = new Date(sh.date);
     const y = dh.getFullYear();
-    const slope = (sh.close - isd) / (stockHistory.length - 1);
+    const slope = (sh.close - isd) / stockHistory.length;
+    console.log(slope);
 
     for (let i = 1; i < 3; i++) {
       dh.setFullYear(dh.getFullYear() + 1);
