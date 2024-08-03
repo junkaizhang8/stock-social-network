@@ -39,13 +39,16 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [stockSymbol, setStockSymbol] = useState("");
   const [covarMatrix, setCovar] = useState([]);
   const [corrMatrix, setCorr] = useState([]);
+  const [reviews, setReviews] = useState([]);
   
   let sym;
   let n;
+  let rev = "";
 
   useEffect(() => {
     getStocks();
     getBalance();
+    getReviews();
   }, [item]);
 
   const getStocks = async () => {
@@ -53,8 +56,9 @@ const PortfolioViewer = ({ item, goBack }) => {
       let res;
       if (item.type == "Portfolio")
         res = await apiService.getPortfolioStocks(item.collection_id);
-      else
+      else {
         res = await apiService.getStockListStocks(item.collection_id);
+      }
 
       const body = res.data;
       if (res.status != 200) {
@@ -119,12 +123,43 @@ const PortfolioViewer = ({ item, goBack }) => {
     }
   }
 
+  const handleRevSub = async () => {
+    if (item.type != "Stock List")
+      return;
+
+    apiService.createReview(item.collection_id, rev).then(() => {
+      alert.success("Added review!");
+      getReviews();
+    }).catch((e) => {
+      alert.error(e.response.data.error);
+    })
+  }
+
   const getBalance = async () => {
+    if (item.type != "Portfolio")
+      return ;
+
     apiService.getPortfolioBalance(item.collection_id).then((res) => {
       const body = res.data;
       setBalance(body.balance);
     }).catch((e) => {
       alert.error(e.response.data.error);
+    });
+  }
+
+  const getReviews = async () => {
+    if (item.type != "Stock List")
+      return ;
+
+    apiService.getReviews(item.collection_id, 0, 200).then((res) => {
+      if (res.status != 200)
+        console.log(res.data.error);
+      else {
+        console.log(res.data.reviews);
+        setReviews(res.data.reviews);
+      }
+    }).catch((e) => {
+      console.log(e);
     });
   }
 
@@ -280,6 +315,33 @@ const PortfolioViewer = ({ item, goBack }) => {
         getName={(i) => stocks[i].symbol}
         getData={(i, j) => corrMatrix[i][j]}/>
       </div>
+
+        {item.type == "Stock List" &&
+      <div> 
+        <h3>Reviews</h3>
+        <form className="simple-form" onSubmit={handleRevSub}>
+          <input className="form-input"
+            type="text"
+            placeholder="Write a review"
+            onChange={(e) => rev = e.target.value}
+            value={rev}
+            required/>
+          <input className="form-submit"
+            type="submit"
+            value="+"/>
+        </form>
+        {reviews.map((item, i) => {
+          return (
+            <div className="portfolio-tile">
+              <p id={i} className="portfolio-type">`"{item.text}"`</p>
+              <a id={i} onClick={() => console.log("delete")} className="portfolio-tile-name">
+                delete?
+              </a>
+            </div>
+          )
+        })}
+      </div>
+        }
     </>
   );
 };
