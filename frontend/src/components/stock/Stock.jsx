@@ -274,7 +274,7 @@ const Stock = ({ symbol, setHidden, held }) => {
       <div className="stock-container">
         <h2>Stock: {symbol}</h2>
         <h3>Held: {held}</h3>
-        <h1 className="stock-price">${stockData.close.toFixed(2)}</h1>
+        <h1 className="stock-price">${(stockData.close*held).toFixed(2)}</h1>
         <button className="btn" onClick={plotWeek} disabled={graphMode === "1W"}>1W</button>
         <button className="btn" onClick={plotMonth} disabled={graphMode === "1M"}>1M</button>
         <button className="btn" onClick={plotQuarterly} disabled={graphMode === "Q"}>Q</button>

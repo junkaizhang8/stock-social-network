@@ -23,7 +23,7 @@ const StockButton = ({ item }) => {
 
   return (
     <>
-      <button onClick={() => setHidden(false)}>{`Show Data On ${item.symbol}`}</button>
+      <button onClick={() => setHidden(false)}>{`${item.symbol} - Held ${item.shares}`}</button>
       <div className={hidden ? "hidden" : undefined}>
         <Stock symbol={item.symbol} setHidden={setHidden} held={item.shares}></Stock>
       </div>
@@ -40,6 +40,7 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [covarMatrix, setCovar] = useState([]);
   const [corrMatrix, setCorr] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [presentValue, setPresentValue] = useState(0);
   
   let sym;
   let n;
@@ -87,6 +88,23 @@ const PortfolioViewer = ({ item, goBack }) => {
       setCovar(cv);
       setCorr(cr);
       setStocks(body.stocks);
+
+      setPresentValue(0);
+
+      for (let i = 0; i < stocks.length; i++) {
+        console.log(stocks[i]);
+        apiService.getStock(stocks[i].symbol).then((res) => {
+          console.log(res);
+          if (res.status == 200) {
+            const b = parseInt(res.data.close);
+            if (isFinite(b))
+              setPresentValue(presentValue + b*stocks[i].shares);
+          }
+        }).catch((e) => {
+          console.log(e);
+        });
+      }
+
     } catch(e) {
       console.log(e);
     }
@@ -264,6 +282,11 @@ const PortfolioViewer = ({ item, goBack }) => {
       {item.type === "Portfolio" && (
         <div>
           <h3>Balance: ${balance.toFixed(2)}</h3>
+        </div>)}
+          <h2>Present Value: {presentValue}</h2>
+        
+          {item.type === "Portfolio" && (
+          <div>
           <select onChange={(e) => setMode(e.target.value)}>
               <option value="Deposit">Deposit</option>
               <option value="Withdraw">Withdraw</option>
