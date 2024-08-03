@@ -119,6 +119,14 @@ const apiService = {
     );
   },
 
+  editReview: async (listId, text) => {
+    return api.patch(`/stock-lists/${listId}/reviews`, { text });
+  },
+
+  deleteReview: async (listId) => {
+    return api.delete(`/stock-lists/${listId}/reviews`);
+  },
+
   sendFriendRequest: async (name) => {
     return api.post(`/requests/?name=${name}`);
   },

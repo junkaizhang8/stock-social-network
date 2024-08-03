@@ -193,3 +193,37 @@ reviewsRouter.patch("/", async (req, res) => {
     return res.status(422).json({ error: "Could not edit review." });
   }
 });
+
+// Delete a review
+reviewsRouter.delete("/", async (req, res) => {
+  const listId = req.params.listId;
+
+  const userId = req.user.id;
+
+  const reviewExistsQuery = await pool.query(
+    `
+    SELECT 1
+    FROM review
+    WHERE collection_id = $1 AND reviewer = $2;
+    `,
+    [listId, userId]
+  );
+
+  if (reviewExistsQuery.rowCount === 0) {
+    return res.status(422).json({ error: "Review does not exist." });
+  }
+
+  try {
+    await pool.query(
+      `
+      DELETE FROM review
+      WHERE collection_id = $1 AND reviewer = $2;
+      `,
+      [listId, userId]
+    );
+
+    return res.json({ message: "Review deleted." });
+  } catch (err) {
+    return res.status(422).json({ error: "Could not delete review." });
+  }
+});
