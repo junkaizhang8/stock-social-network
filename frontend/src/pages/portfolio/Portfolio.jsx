@@ -316,15 +316,15 @@ const Portfolio = () => {
         return ;
       }
 
-      if (filter == "private")
+      if (filter == "personal")
         setCollections(body.stockLists.map((item, _) => {
-          if (item.visibility == "private")
-            return {
-              collection_id: item.collection_id,
-              visibility: item.visibility,
-              name: item.name,
-              type: "Stock List"
-            }
+          return {
+            collection_id: item.collection_id,
+            visibility: item.visibility,
+            name: item.name,
+            type: "Stock List",
+            is_owner: true,
+          }
         }));
       else if (filter == "Portfolio")
         setCollections(body.portfolios.map((item, _) => {
@@ -332,7 +332,18 @@ const Portfolio = () => {
             collection_id: item.collection_id,
             balance: item.balance,
             name: item.name,
-            type: "Portfolio"
+            type: "Portfolio",
+            is_owner: true,
+          }
+        }));
+      else if (filter === "shared")
+        setCollections(body.stockLists.map((item, _) => {
+          return {
+            collection_id: item.collection_id,
+            visibility: item.visibility,
+            name: item.name,
+            type: "Stock List",
+            is_owner: false,
           }
         }));
       else
@@ -341,7 +352,8 @@ const Portfolio = () => {
             collection_id: item.collection_id,
             visibility: item.visibility,
             name: item.name,
-            type: "Stock List"
+            type: "Stock List",
+            is_owner: item.is_owner,
           }
         }));
 
@@ -350,6 +362,14 @@ const Portfolio = () => {
     }
   }
 
+  const deleteStockList = async () => {
+    apiService.deleteStockList(focus.collection_id).then(() => {
+      alert.success("Stock List Deleted");
+      getCollections(typeFilter);
+    }).catch((e) => {
+      alert.error(e.response.data.error);
+    });
+  }
 
   const createNewCollection = async (e) => {
     const name = e.target[0].value;
@@ -411,10 +431,13 @@ const Portfolio = () => {
             {collections.map((item, i) => {
               if (item != undefined)
                 return (
-                  <PortfolioTile
-                  key={i}
-                  item={item} 
-                  setFocus={setFocus}/>
+                  <>
+                    <PortfolioTile
+                    key={i}
+                    item={item} 
+                    setFocus={setFocus}/>
+                    {item.type == "Stock List" && item.is_owner && <button onClick={() => deleteStockList()}>Delete</button>}
+                  </>
                 );
             })}
           </div>
