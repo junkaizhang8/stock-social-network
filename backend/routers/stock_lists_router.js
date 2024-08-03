@@ -106,7 +106,10 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
   try {
     // If stock already exists in stock list, update shares
-    if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares > 0) {
+    if (
+      stockInListQuery.rowCount > 0 &&
+      stockInListQuery.rows[0].shares + shares > 0
+    ) {
       await pool.query(
         `
         UPDATE in_collection
@@ -117,20 +120,24 @@ stocksListsRouter.post("/:id", async (req, res) => {
       );
 
       return res.json({ message: "Stock added." });
-
-    } else if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares == 0) {
-        await pool.query(
-          `
+    } else if (
+      stockInListQuery.rowCount > 0 &&
+      stockInListQuery.rows[0].shares + shares == 0
+    ) {
+      await pool.query(
+        `
           DELETE FROM in_collection
           WHERE collection_id = $1 AND symbol = $2
           `,
-          [listId, symbol]
-        );
+        [listId, symbol]
+      );
 
-        return res.json({ message: "Stock removed." });
-
-    } else if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares < 0)
-        return res.status(422).json({ error: "Removing more stock than exists" });
+      return res.json({ message: "Stock removed." });
+    } else if (
+      stockInListQuery.rowCount > 0 &&
+      stockInListQuery.rows[0].shares + shares < 0
+    )
+      return res.status(422).json({ error: "Removing more stock than exists" });
 
     // If stock does not exist in stock list, add stock
     await pool.query(
@@ -153,13 +160,15 @@ stocksListsRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
 
+  const userId = req.user.id;
+
   if (page < 0 || limit < 0) {
     return res.status(422).json({ error: "Invalid page or limit." });
   }
 
   const stockListQuery = await pool.query(
     `
-    SELECT collection_id, name, owner, username AS owner_name, visibility
+    SELECT collection_id, name, owner, username AS owner_name, visibility, owner = $3 AS is_owner
     FROM stock_collection NATURAL JOIN (
       SELECT *
       FROM stock_list
@@ -170,7 +179,7 @@ stocksListsRouter.get("/", async (req, res) => {
     OFFSET $1
     LIMIT $2;
     `,
-    [page * limit, limit]
+    [page * limit, limit, userId]
   );
 
   const totalQuery = await pool.query(
@@ -353,4 +362,40 @@ stocksListsRouter.get("/:id", async (req, res) => {
     stocks: stockQuery.rows,
     total: parseInt(totalQuery.rows[0].total),
   });
+});
+
+// Delete a stock list
+stocksListsRouter.delete("/:id", async (req, res) => {
+  const listId = parseInt(req.params.id);
+
+  const userIdQuery = await pool.query(
+    `
+    SELECT owner
+    FROM stock_collection
+    WHERE collection_id = $1;
+    `,
+    [listId]
+  );
+
+  if (userIdQuery.rowCount === 0) {
+    return res.status(404).json({ error: "Stock list not found." });
+  }
+
+  if (userIdQuery.rows[0].owner !== req.user.id) {
+    return res.status(403).json({ error: "Not authorized." });
+  }
+
+  try {
+    await pool.query(
+      `
+      DELETE FROM stock_collection
+      WHERE collection_id = $1;
+      `,
+      [listId]
+    );
+
+    return res.json({ message: "Stock list deleted." });
+  } catch (err) {
+    return res.status(422).json({ error: "Could not delete stock list." });
+  }
 });

@@ -105,6 +105,10 @@ const apiService = {
     return api.get(`/stock-lists/${listId}`);
   },
 
+  deleteStockList: async (listId) => {
+    return api.delete(`/stock-lists/${listId}`);
+  },
+
   createReview: async (listId, text) => {
     return api.post(`/stock-lists/${listId}/reviews`, { text });
   },
