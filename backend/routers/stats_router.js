@@ -4,6 +4,11 @@ import { authenticateToken } from "../middleware/auth.js";
 
 export const statsRouter = Router();
 
+const toFloat = (str) => {
+  const k = parseFloat(str);
+  return isNan(k) ? 0 : k;
+};
+
 async function get_stat1_cache (sym) {
   /* get cache for when stock was last updated */ 
   const cache = await pool.query(
@@ -194,13 +199,13 @@ async function get_var (sym) {
 
   let avg = 0;
   for (let i = 0; i < stocks.rowCount; i++)
-    avg += parseFloat(stocks.rows[i].close);
+    avg += toFloat(stocks.rows[i].close);
   avg = avg / stocks.rowCount;
 
 
   let a = 0; let t;
   for (let i = 0; i < stocks.rowCount; i++) {
-    t = parseFloat(stocks.rows[i].close) - avg;
+    t = toFloat(stocks.rows[i].close) - avg;
     a += t*t;
   }
 
@@ -240,8 +245,8 @@ async function get_cov (sym1, sym2) {
 
   let avg1 = 0; let avg2 = 0;
   for (let i = 0; i < stocks.rowCount; i++) {
-    avg1 += parseFloat(stocks.rows[i].sym1_close);
-    avg2 += parseFloat(stocks.rows[i].sym2_close);
+    avg1 += toFloat(stocks.rows[i].sym1_close);
+    avg2 += toFloat(stocks.rows[i].sym2_close);
   }
 
   avg1 = avg1 / stocks.rowCount;
@@ -249,8 +254,8 @@ async function get_cov (sym1, sym2) {
 
   let a = 0; let t;
   for (let i = 0; i < stocks.rowCount; i++) {
-    t = parseFloat(stocks.rows[i].sym1_close) - avg1;
-    t *= parseFloat(stocks.rows[i].sym2_close) - avg2;
+    t = toFloat(stocks.rows[i].sym1_close) - avg1;
+    t *= toFloat(stocks.rows[i].sym2_close) - avg2;
     a += t;
   }
 

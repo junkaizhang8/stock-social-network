@@ -82,7 +82,11 @@ stocksRouter.get("/:symbol/history", async (req, res) => {
     `
     SELECT open, high, low, close, volume, date
     FROM stock_history
-    WHERE symbol = $1${interval};
+    WHERE symbol = $1${interval} AND open IS NOT NULL 
+                                 AND high IS NOT NULL 
+                                 AND close IS NOT NULL
+                                 AND volume IS NOT NULL
+                                 AND date IS NOT NULL
     `,
     [symbol]
   );

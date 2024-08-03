@@ -74,7 +74,7 @@ portfoliosRouter.post("/:id", async (req, res) => {
     SELECT close AS price
     FROM stock_history, (SELECT MAX(date)
                          FROM stock_history
-                         WHERE symbol = $1) m
+                         WHERE symbol = $1 AND close IS NOT NULL) m
     WHERE symbol = $1 AND m.max = date;
     `,
     [symbol]
