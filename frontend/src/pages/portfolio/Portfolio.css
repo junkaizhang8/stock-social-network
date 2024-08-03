@@ -34,3 +34,11 @@
 .portfolio-tile-name {
   margin-left: 10px;
 }
+.transaction-tile {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.bold {
+  font-weight: bold;
+}

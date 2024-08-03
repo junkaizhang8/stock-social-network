@@ -42,6 +42,8 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [corrMatrix, setCorr] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [presentValue, setPresentValue] = useState(0);
+  const [transactions, setTransactions] = useState([]);
+  const [showTransactions, setShowTransactions] = useState(false);
   const [reviewmode, setReviewMode] = useState(false);
   
   let sym;
@@ -308,6 +310,21 @@ const PortfolioViewer = ({ item, goBack }) => {
     })
   }
 
+  const getTransactions = async () => {
+    if (item.type != "Portfolio") return;
+
+    apiService.getPortfolioTransactions(item.collection_id).then((res) => {
+      setTransactions(res.data.transactions);
+    }).catch((e) => {
+      alert.error(e.response.data.error);
+    });
+  }
+
+  const displayTransactions = () => {
+    getTransactions();
+    setShowTransactions(true);
+  }
+
   return (
     <>
       <div style={styles.backButtonContainer}>
@@ -323,13 +340,38 @@ const PortfolioViewer = ({ item, goBack }) => {
         <div>
           <h3>Balance: ${balance.toFixed(2)}</h3>
         </div>)}
-        
-          {item.type === "Portfolio" && (
+        <div className={item.type === "Portfolio" ? undefined : "hidden"}>
+          <button className='btn' onClick={() => setShowTransactions(false)} disabled={!showTransactions}>Stocks</button>
+          <button className='btn' onClick={() => displayTransactions()} disabled={showTransactions}>Transactions</button>
+        </div>
+        <div className={showTransactions ? "hidden" : undefined}>
+        {item.type === "Portfolio" && (
           <div>
-          <select onChange={(e) => setMode(e.target.value)}>
+            <select onChange={(e) => setMode(e.target.value)}>
               <option value="Deposit">Deposit</option>
               <option value="Withdraw">Withdraw</option>
             </select>
+            <form className="simple-form" onSubmit={updateBalance}>
+              <input className='form-input' type='text' placeholder='Amount'/>
+              <input className='form-submit' type='submit' value={mode}/>
+            </form>
+          </div>)
+        }
+        <select onChange={(e) => setTransactionMode(e.target.value)}>
+          <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
+          <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
+        </select>
+        <form className="simple-form"
+            onSubmit={handleSubmit}>
+          <input className="form-input" 
+            type="text"
+            placeholder={"Stock Symbol"}
+            onChange={(e) => sym = e.target.value}
+            required/>
+          <input className="form-input"
+            type="text"
+            placeholder="Amount"
+            onChange={(e) => n = e.target.value}
           <form className="simple-form" onSubmit={updateBalance}>
             <input className='form-input' type='text' placeholder='Amount'/>
             <input className='form-submit' type='submit' value={mode}/>
@@ -390,10 +432,70 @@ const PortfolioViewer = ({ item, goBack }) => {
             type="text"
             placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
             required/>
-          <input className="form-submit"
+          <input className="form-submit" 
             type="submit"
-            value="+"/>
+            value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
         </form>
+        <div className={hidden ? "hidden" : undefined}>
+          <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
+        </div>
+        <div style={{display: "flex" }}>
+          {stocks.map((item, i) => {
+            return (
+              <StockButton id={i} item={item}/>
+            )
+          })}
+        </div>
+      
+        <Table
+          caption="Covariance Matrix"
+          data={covarMatrix}
+          getName={(i) => stocks[i].symbol}
+          getData={(i, j) => covarMatrix[i][j]}/>
+
+        <div style={{paddingTop:30}}>
+        <Table
+          caption="Correlation Matrix"
+          data={corrMatrix}
+          getName={(i) => stocks[i].symbol}
+          getData={(i, j) => corrMatrix[i][j]}/>
+        </div>
+
+          {item.type == "Stock List" &&
+        <div> 
+          <h3>Reviews</h3>
+          <form className="simple-form" onSubmit={handleRevSub}>
+            <input className="form-input"
+              type="text"
+              placeholder="Write a review"
+              onChange={(e) => rev = e.target.value}
+              value={rev}
+              required/>
+            <input className="form-submit"
+              type="submit"
+              value="+"/>
+          </form>
+          {reviews.map((item, i) => {
+            return (
+              <div className="portfolio-tile">
+                <p id={i} className="portfolio-type">`"{item.text}"`</p>
+                <a id={i} onClick={() => console.log("delete")} className="portfolio-tile-name">
+                  delete?
+                </a>
+              </div>
+            )
+          })}
+        </div>
+          }
+      </div>
+      <div className={showTransactions ? undefined : "hidden"}>
+        <div>
+          {transactions.length && (
+            <div className='transaction-tile row'>
+              <p className='col-3 bold'>Symbol</p>
+              <p className='col-3 bold'>Shares</p>
+              <p className='col-3 bold'>Delta</p>
+              <p className='col-3 bold'>Timestamp</p>
 
         {reviews.map((item, i) => {
           return (
@@ -406,10 +508,17 @@ const PortfolioViewer = ({ item, goBack }) => {
                 edit?
               </a>
             </div>
-          )
-        })}
+          )}
+          {transactions.map((item, i) => {
+            return (
+              <div key={i} className='transaction-tile row'>
+                <p className='col-3'>{item.symbol}</p>
+                <p className='col-3'>{item.shares}</p>
+                <p className='col-3'>{(parseFloat(item.delta) > 0 ? "+" : "-") + "$" + Math.abs(parseFloat(item.delta)).toFixed(2)}</p>
+                <p className='col-3'>{item.timestamp}</p>
+                </div>);})}
+        </div>
       </div>
-        }
     </>
   );
 };
