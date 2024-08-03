@@ -424,8 +424,8 @@ const Portfolio = () => {
     }
   }
 
-  const deleteStockList = async () => {
-    apiService.deleteStockList(focus.collection_id).then(() => {
+  const deleteStockList = async (listId) => {
+    apiService.deleteStockList(listId).then(() => {
       alert.success("Stock List Deleted");
       getCollections(typeFilter);
     }).catch((e) => {
@@ -498,7 +498,7 @@ const Portfolio = () => {
                     key={i}
                     item={item} 
                     setFocus={setFocus}/>
-                    {item.type == "Stock List" && item.is_owner && <button onClick={() => deleteStockList()}>Delete</button>}
+                    {item.type == "Stock List" && item.is_owner && <button onClick={() => deleteStockList(item.collection_id)}>Delete</button>}
                   </>
                 );
             })}
