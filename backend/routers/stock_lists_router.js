@@ -54,12 +54,14 @@ stocksListsRouter.post("/", async (req, res) => {
 // Add/remove shares to a stock list
 stocksListsRouter.post("/:id", async (req, res) => {
   const listId = parseInt(req.params.id);
-  const symbol = req.body.symbol;
-  const shares = parseInt(req.body.shares);
+  const symbol = req.body.symbol || "";
+  const shares = parseInt(req.body.shares) || 0;
 
   if (symbol === "" || shares === 0) {
     return res.status(422).json({ error: "Invalid symbol or share quantity." });
   }
+
+  const mode = shares > 0 ? "add" : "remove";
 
   const userIdQuery = await pool.query(
     `
@@ -105,7 +107,6 @@ stocksListsRouter.post("/:id", async (req, res) => {
   try {
     // If stock already exists in stock list, update shares
     if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares > 0) {
-      console.log("change list normal");
       await pool.query(
         `
         UPDATE in_collection
