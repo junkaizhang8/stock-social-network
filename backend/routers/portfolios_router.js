@@ -72,13 +72,14 @@ portfoliosRouter.post("/:id", async (req, res) => {
   const stockExistsQuery = await pool.query(
     `
     SELECT close AS price
-    FROM stock_history
-    WHERE symbol = $1
-    ORDER BY date DESC
-    LIMIT 1;
+    FROM stock_history, (SELECT MAX(date)
+                         FROM stock_history
+                         WHERE symbol = $1) m
+    WHERE symbol = $1 AND m.max = date;
     `,
     [symbol]
   );
+
 
   if (stockExistsQuery.rowCount === 0) {
     return res.status(404).json({ error: "Stock not found." });
@@ -115,30 +116,16 @@ portfoliosRouter.post("/:id", async (req, res) => {
 
   try {
     // If stock already exists in portfolio, update shares
-    if (stockInPortfolioQuery.rowCount > 0) {
-      const currentShares = stockInPortfolioQuery.rows[0].shares;
-      if (mode === "remove" && currentShares < -shares) {
-        return res.status(422).json({ error: "Insufficient shares." });
-      }
-
-      if (mode === "remove" && currentShares === -shares) {
-        await pool.query(
-          `
-          DELETE FROM in_collection
-          WHERE collection_id = $1 AND symbol = $2;
-          `,
-          [portfolioId, symbol]
-        );
-      } else {
-        await pool.query(
-          `
-          UPDATE in_collection
-          SET shares = shares + $1
-          WHERE collection_id = $2 AND symbol = $3;
-          `,
-          [shares, portfolioId, symbol]
-        );
-      }
+    if (stockInPortfolioQuery.rowCount > 0 && stockInPortfolioQuery.rows[0].shares + shares > 0) {
+      console.log("change stock normal");
+      await pool.query(
+        `
+        UPDATE in_collection
+        SET shares = shares + $1
+        WHERE collection_id = $2 AND symbol = $3;
+        `,
+        [shares, portfolioId, symbol]
+      );
 
       await pool.query(
         `
@@ -156,17 +143,38 @@ portfoliosRouter.post("/:id", async (req, res) => {
         `,
         [portfolioId, symbol, shares, -1 * shares * price]
       );
+      return res.json({ message: "Stock added." });
 
-      if (mode === "remove" && currentShares === -shares) {
-        return res.json({ message: "Stock removed." });
-      }
-      return res.json({ message: "Portfolio updated." });
-    }
+    } else if (stockInPortfolioQuery.rowCount > 0 && stockInPortfolioQuery.rows[0].shares + shares == 0) {
+        console.log("delete stock strange");
+        await pool.query(
+          `
+          DELETE FROM in_collection
+          WHERE collection_id = $1 AND symbol = $2
+          `,
+          [portfolioId, symbol]
+        );
+  
+        await pool.query(
+          `
+          UPDATE portfolio
+          SET balance = balance - $1
+          WHERE collection_id = $2;
+          `,
+          [shares * price, portfolioId]
+        );
+  
+        await pool.query(
+          `
+          INSERT INTO transaction (collection_id, symbol, shares, delta)
+          VALUES ($1, $2, $3, $4);
+          `,
+          [portfolioId, symbol, shares, -1 * shares * price]
+        );
+      return res.json({ message: "Stock updated." });
 
-    // If stock does not exist in portfolio and trying to remove, return error
-    if (mode === "remove") {
-      return res.status(422).json({ error: "Stock not in portfolio." });
-    }
+    } else if (stockInPortfolioQuery.rowCount > 0 && stockInPortfolioQuery.rows[0].shares + shares < 0)
+        return res.status(422).json({ error: "Selling more stock than exists" });
 
     // If stock does not exist in portfolio, add stock
     await pool.query(

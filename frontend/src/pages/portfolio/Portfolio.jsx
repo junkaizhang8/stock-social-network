@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import apiService from '../../services/api.js';
+import Table from '../../utils/table.jsx';
 import alert from '../../utils/alert.js';
-import Stock from '../../components/stock/Stock.jsx';
-import "./Portfolio.css";
+import Stock from '../../components/stock/Stock';
+import "./Portfolio.css"
 
 const PortfolioTile = ({ item, setFocus }) => {
   return (
@@ -17,52 +18,75 @@ const PortfolioTile = ({ item, setFocus }) => {
   )
 };
 
+const StockButton = ({ item }) => {
+  const [hidden, setHidden] = useState(true);
+
+  return (
+    <>
+      <button onClick={() => setHidden(false)}>{`Show Data On ${item.symbol}`}</button>
+      <div className={hidden ? "hidden" : undefined}>
+        <Stock symbol={item.symbol} setHidden={setHidden} held={item.shares}></Stock>
+      </div>
+    </> 
+  );
+};
+
 const PortfolioViewer = ({ item, goBack }) => {
   const [balance, setBalance] = useState(0);
   const [mode, setMode] = useState("Deposit");
   const [stocks, setStocks] = useState([]);
   const [hidden, setHidden] = useState(true);
   const [stockSymbol, setStockSymbol] = useState("");
+  const [covarMatrix, setCovar] = useState([]);
+  const [corrMatrix, setCorr] = useState([]);
+  
   let sym;
   let n;
 
   useEffect(() => {
-    if (item.type == "Portfolio") {
-      apiService.getPortfolioStocks(item.collection_id).then((res1) => {
-        apiService.getPortfolioBalance(item.collection_id).then((res2) => {
-          setStocks(res1.data.stocks);
-          setBalance(res2.data.balance);
-        }).catch((e) => {
-          alert.error(e.response.data.error);
-        });
-      }).catch((e) => {
-        alert.error(e.response.data.error);
-      });
-    } else {
-      apiService.getStockListStocks(item.collection_id).then((res1) => {
-        setStocks(res1.data.stocks);
-      }).catch((e) => {
-        alert.error(e.response.data.error);
-      });
-    }
+    getStocks();
+    getBalance();
   }, [item]);
 
   const getStocks = async () => {
-    if (item.type == "Portfolio") {
-      apiService.getPortfolioStocks(item.collection_id).then((res) => {
-        setStocks(res.data.stocks);
+    try {
+      let res;
+      if (item.type == "Portfolio")
+        res = await apiService.getPortfolioStocks(item.collection_id);
+      else
+        res = await apiService.getStockListStocks(item.collection_id);
+
+      const body = res.data;
+      if (res.status != 200) {
+        alert.error(body.error);
+        return;
       }
-      ).catch((e) => {
-        alert.error(e.response.data.error);
-      });
-    } else {
-      apiService.getStockListStocks(item.collection_id).then((res) => {
-        setStocks(res.data.stocks);
-      }).catch((e) => {
-        alert.error(e.response.data.error);
-      });
+
+      let r;
+      const cr = [];
+      const cv = [];
+
+      for (let i = 0; i < body.stocks.length; i++) {
+        const cr_t = [];
+        const cv_t = [];
+
+        for (let j = 0; j < body.stocks.length; j++) {
+          r = await fetchStat2(body.stocks[i], body.stocks[j]);
+          cr_t.push(r.corr.toFixed(3));
+          cv_t.push(r.cov.toFixed(3));
+        } 
+
+        cr.push(cr_t);
+        cv.push(cv_t);
+      } 
+
+      setCovar(cv);
+      setCorr(cr);
+      setStocks(body.stocks);
+    } catch(e) {
+      console.log(e);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -180,6 +204,18 @@ const PortfolioViewer = ({ item, goBack }) => {
     }
   }
 
+  const fetchStat2 = async (x, y) => {
+    return await apiService.getStockStats2(x.symbol, y.symbol).then((res) => {
+      if (res.status != 200)
+        return undefined;
+      else
+        return res.data;
+    }).catch((e) => {
+      console.log(e);
+      return undefined;
+    })
+  }
+
   return (
     <>
       <div style={styles.backButtonContainer}>
@@ -238,6 +274,27 @@ const PortfolioViewer = ({ item, goBack }) => {
         )}
       <div className={hidden ? "hidden" : undefined}>
         <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
+
+      <div styles={{display: "flex" }}>
+        {stocks.map((item, i) => {
+          return (
+            <StockButton id={i} item={item}/>
+          )
+        })}
+      </div>
+      
+      <Table
+        caption="Covariance Matrix"
+        data={covarMatrix}
+        getName={(i) => stocks[i].symbol}
+        getData={(i, j) => covarMatrix[i][j]}/>
+
+      <div style={{paddingTop:30}}>
+      <Table
+        caption="Correlation Matrix"
+        data={corrMatrix}
+        getName={(i) => stocks[i].symbol}
+        getData={(i, j) => corrMatrix[i][j]}/>
       </div>
     </>
   );
@@ -269,12 +326,12 @@ const Portfolio = () => {
       else
         return ;
 
+      const body = res.data;
       if (res.status != 200) {
         alert.error(body.error);
         return ;
       }
 
-      const body = res.data;
       if (filter == "private")
         setCollections(body.stockLists.map((item, _) => {
           if (item.visibility == "private")

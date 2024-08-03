@@ -82,10 +82,11 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
   const stockExistsQuery = await pool.query(
     `
-    SELECT 1
-    FROM stock_history
-    WHERE symbol = $1
-    LIMIT 1;
+    SELECT close AS price
+    FROM stock_history, (SELECT MAX(date)
+                         FROM stock_history
+                         WHERE symbol = $1) m
+    WHERE symbol = $1 AND m.max = date;
     `,
     [symbol]
   );
@@ -105,25 +106,7 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
   try {
     // If stock already exists in stock list, update shares
-    if (stockInListQuery.rowCount > 0) {
-      const currentShares = stockInListQuery.rows[0].shares;
-
-      if (mode === "remove" && currentShares < -shares) {
-        return res.status(422).json({ error: "Insufficient shares." });
-      }
-
-      if (mode === "remove" && currentShares === -shares) {
-        await pool.query(
-          `
-          DELETE FROM in_collection
-          WHERE collection_id = $1 AND symbol = $2;
-          `,
-          [listId, symbol]
-        );
-
-        return res.json({ message: "Stock removed." });
-      }
-
+    if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares > 0) {
       await pool.query(
         `
         UPDATE in_collection
@@ -133,13 +116,21 @@ stocksListsRouter.post("/:id", async (req, res) => {
         [shares, listId, symbol]
       );
 
-      return res.json({ message: "Stock list updated." });
-    }
+      return res.json({ message: "Stock added." });
 
-    // If stock does not exist in stock list and trying to remove, return error
-    if (mode === "remove") {
-      return res.status(422).json({ error: "Stock not in list." });
-    }
+    } else if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares == 0) {
+        await pool.query(
+          `
+          DELETE FROM in_collection
+          WHERE collection_id = $1 AND symbol = $2
+          `,
+          [listId, symbol]
+        );
+
+        return res.json({ message: "Stock removed." });
+
+    } else if (stockInListQuery.rowCount > 0 && stockInListQuery.rows[0].shares + shares < 0)
+        return res.status(422).json({ error: "Removing more stock than exists" });
 
     // If stock does not exist in stock list, add stock
     await pool.query(
@@ -152,6 +143,7 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
     return res.json({ message: "Stock added." });
   } catch (err) {
+    console.log(err);
     return res.status(422).json({ error: "Could not add stock." });
   }
 });

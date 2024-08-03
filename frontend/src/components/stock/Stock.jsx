@@ -16,7 +16,7 @@ import "./Stock.css";
 
 ChartJS.register(LineElement, TimeScale, LinearScale, PointElement, Tooltip);
 
-const Stock = ({ symbol, setHidden }) => {
+const Stock = ({ symbol, setHidden, held }) => {
   const [stockData, setStockData] = useState(null);
   const [stockStats, setStockStats] = useState(null);
   const [stockHistory, setStockHistory] = useState([]);
@@ -251,6 +251,7 @@ const Stock = ({ symbol, setHidden }) => {
         :
       <div className="stock-container">
         <h2>Stock: {symbol}</h2>
+        <h3>Held: {held}</h3>
         <h1 className="stock-price">${stockData.close.toFixed(2)}</h1>
         <button className="btn" onClick={plotWeek} disabled={graphMode === "1W"}>1W</button>
         <button className="btn" onClick={plotMonth} disabled={graphMode === "1M"}>1M</button>

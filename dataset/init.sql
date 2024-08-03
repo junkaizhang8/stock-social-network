@@ -76,3 +76,6 @@ CREATE TABLE review (
 -- Load past S&P 500 data
 COPY stock_history(date, open, high, low, close, volume, symbol)
 FROM '/docker-entrypoint-initdb.d/SP500History.csv' DELIMITER ',' CSV HEADER;
+
+INSERT INTO stock(symbol)
+SELECT symbol FROM stock_history GROUP BY symbol
