@@ -123,8 +123,12 @@ const apiService = {
     return api.post(`/requests/?name=${name}`);
   },
 
-  getFriendRequests: async () => {
-    return api.get("/requests");
+  getIncomingFriendRequests: async () => {
+    return api.get("/requests/?type=incoming");
+  },
+
+  getOutgoingFriendRequests: async () => {
+    return api.get("/requests/?type=outgoing");
   },
 
   acceptFriendRequest: async (name) => {

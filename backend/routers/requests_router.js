@@ -96,41 +96,80 @@ requestsRouter.post("/", async (req, res) => {
 requestsRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
+  const type = req.query.type;
 
   if (page < 0 || limit < 0) {
     return res.status(422).json({ error: "Invalid page or limit." });
   }
 
+  if (type !== "incoming" && type !== "outgoing") {
+    return res.status(422).json({ error: "Invalid request type." });
+  }
+
   const userId = req.user.id;
 
-  const requestQuery = await pool.query(
-    `
-    SELECT user_id, username
-    FROM (
-      SELECT user2 AS user_id, timestamp
-      FROM relationship
-      WHERE (user1 = $1 AND type = 'u2request')
-      UNION 
-      SELECT user1 AS user_id, timestamp
-      FROM relationship
-      WHERE (user2 = $1 AND type = 'u1request')
-      ORDER BY timestamp DESC
-      OFFSET $2
-      LIMIT $3)
-    JOIN account ON user_id = account_id;
-    `,
-    [userId, page * limit, limit]
-  );
+  let requestQuery;
+  let totalQuery;
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM relationship
-    WHERE (user1 = $1 AND type = 'u2request')
-      OR (user2 = $1 AND type = 'u1request');
-    `,
-    [userId]
-  );
+  if (type === "incoming") {
+    requestQuery = await pool.query(
+      `
+      SELECT user_id, username
+      FROM (
+        SELECT user2 AS user_id, timestamp
+        FROM relationship
+        WHERE (user1 = $1 AND type = 'u2request')
+        UNION 
+        SELECT user1 AS user_id, timestamp
+        FROM relationship
+        WHERE (user2 = $1 AND type = 'u1request')
+        ORDER BY timestamp DESC
+        OFFSET $2
+        LIMIT $3)
+      JOIN account ON user_id = account_id;
+      `,
+      [userId, page * limit, limit]
+    );
+
+    totalQuery = await pool.query(
+      `
+      SELECT COUNT(*) AS total
+      FROM relationship
+      WHERE user1 = $1 AND type = 'u2request'
+        OR user2 = $1 AND type = 'u1request';
+      `,
+      [userId]
+    );
+  } else {
+    requestQuery = await pool.query(
+      `
+      SELECT user_id, username
+      FROM (
+        SELECT user2 AS user_id, timestamp
+        FROM relationship
+        WHERE (user1 = $1 AND type = 'u1request')
+        UNION 
+        SELECT user1 AS user_id, timestamp
+        FROM relationship
+        WHERE (user2 = $1 AND type = 'u2request')
+        ORDER BY timestamp DESC
+        OFFSET $2
+        LIMIT $3)
+      JOIN account ON user_id = account_id;
+      `,
+      [userId, page * limit, limit]
+    );
+
+    totalQuery = await pool.query(
+      `
+      SELECT COUNT(*) AS total
+      FROM relationship
+      WHERE user1 = $1 AND type = 'u1request'
+        OR user2 = $1 AND type = 'u2request';
+      `,
+      [userId]
+    );
+  }
 
   res.json({
     requests: requestQuery.rows,
