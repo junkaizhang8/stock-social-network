@@ -41,10 +41,11 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [corrMatrix, setCorr] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [presentValue, setPresentValue] = useState(0);
+  const [reviewmode, setReviewMode] = useState(false);
+  const [rev, setRev] = useState("");
   
   let sym;
   let n;
-  let rev = "";
 
   useEffect(() => {
     getStocks();
@@ -141,12 +142,38 @@ const PortfolioViewer = ({ item, goBack }) => {
     }
   }
 
-  const handleRevSub = async () => {
+  const handleRevSub = async (e) => {
+    e.preventDefault();
     if (item.type != "Stock List")
       return;
 
-    apiService.createReview(item.collection_id, rev).then(() => {
-      alert.success("Added review!");
+    if (!reviewmode)
+      apiService.createReview(item.collection_id, rev).then(() => {
+        alert.success("Added review!");
+        getReviews();
+        setRev("");
+      }).catch((e) => {
+        alert.error(e.response.data.error);
+      })
+
+    else
+      apiService.editReview(item.collection_id, rev).then(() => {
+        alert.success("Edited review");
+        getReviews();
+        setRev("");
+      }).catch((e) => {
+        alert.error(e.response.data.error);
+      })
+
+    setReviewMode(false);
+  }
+
+  const handleDelRev = async () => {
+    if (item.type != "Stock List")
+      return;
+
+    apiService.deleteReview(item.collection_id).then(() => {
+      alert.success("Deleted review");
       getReviews();
     }).catch((e) => {
       alert.error(e.response.data.error);
@@ -345,20 +372,24 @@ const PortfolioViewer = ({ item, goBack }) => {
         <form className="simple-form" onSubmit={handleRevSub}>
           <input className="form-input"
             type="text"
-            placeholder="Write a review"
-            onChange={(e) => rev = e.target.value}
+            placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
+            onChange={(e) => setRev(e.target.value)}
             value={rev}
             required/>
           <input className="form-submit"
             type="submit"
             value="+"/>
         </form>
+
         {reviews.map((item, i) => {
           return (
             <div className="portfolio-tile">
               <p id={i} className="portfolio-type">`"{item.text}"`</p>
-              <a id={i} onClick={() => console.log("delete")} className="portfolio-tile-name">
+              <a id={i} onClick={() => handleDelRev()} className="portfolio-tile-name">
                 delete?
+              </a>
+              <a id={i} onClick={() => setReviewMode(true)} className="portfolio-tile-name">
+                edit?
               </a>
             </div>
           )
