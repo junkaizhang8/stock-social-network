@@ -302,8 +302,6 @@ stocksListsRouter.get("/me", async (req, res) => {
 // Get stocks in a stock list
 stocksListsRouter.get("/:id", async (req, res) => {
   const listId = parseInt(req.params.id);
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
 
   const userId = req.user.id;
 
@@ -335,18 +333,20 @@ stocksListsRouter.get("/:id", async (req, res) => {
 
   const stockQuery = await pool.query(
     `
-    SELECT *
+    SELECT symbol, shares, close AS price
     FROM (
       SELECT *
       FROM in_collection
       WHERE collection_id = $1
     )
-    NATURAL JOIN stock
-    ORDER BY symbol
-    OFFSET $2
-    LIMIT $3;
+    NATURAL JOIN (
+      SELECT symbol, MAX(date) AS date
+      FROM stock_history
+      GROUP BY symbol
+    )
+    NATURAL JOIN stock_history;
     `,
-    [listId, page * limit, limit]
+    [listId]
   );
 
   const totalQuery = await pool.query(

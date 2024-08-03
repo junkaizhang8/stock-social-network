@@ -34,6 +34,7 @@ const StockButton = ({ item }) => {
 const PortfolioViewer = ({ item, goBack }) => {
   const [balance, setBalance] = useState(0);
   const [mode, setMode] = useState("Deposit");
+  const [transactionMode, setTransactionMode] = useState("Add");
   const [stocks, setStocks] = useState([]);
   const [hidden, setHidden] = useState(true);
   const [stockSymbol, setStockSymbol] = useState("");
@@ -60,6 +61,8 @@ const PortfolioViewer = ({ item, goBack }) => {
       else {
         res = await apiService.getStockListStocks(item.collection_id);
       }
+
+      console.log(res);
 
       const body = res.data;
       if (res.status != 200) {
@@ -89,21 +92,11 @@ const PortfolioViewer = ({ item, goBack }) => {
       setCorr(cr);
       setStocks(body.stocks);
 
-      setPresentValue(0);
+      const pVal = body.stocks.reduce((acc, stock) => {
+        return acc + stock.shares * stock.price;
+      }, 0);
 
-      for (let i = 0; i < stocks.length; i++) {
-        console.log(stocks[i]);
-        apiService.getStock(stocks[i].symbol).then((res) => {
-          console.log(res);
-          if (res.status == 200) {
-            const b = parseInt(res.data.close);
-            if (isFinite(b))
-              setPresentValue(presentValue + b*stocks[i].shares);
-          }
-        }).catch((e) => {
-          console.log(e);
-        });
-      }
+      setPresentValue(pVal);
 
     } catch(e) {
       console.log(e);
@@ -123,21 +116,40 @@ const PortfolioViewer = ({ item, goBack }) => {
     e.target[0].value = "";
     e.target[1].value = "";
 
-    if (item.type == "Portfolio") {
-      apiService.purchaseStock(item.collection_id, sym, num).then(() => {
-        alert.success(`Purchased ${num} shares of ${sym}`);
-        getStocks();
-        getBalance();
-      }).catch((e) => {
-        alert.error(e.response.data.error);
-      });
+    if (item.type === "Portfolio") {
+      if (transactionMode === "Add") {
+        apiService.purchaseStock(item.collection_id, sym, num).then(() => {
+          alert.success(`Purchased ${num} shares of ${sym}`);
+          getStocks();
+          getBalance();
+        }).catch((e) => {
+          alert.error(e.response.data.error);
+        });
+      } else {
+        apiService.sellStock(item.collection_id, sym, num).then(() => {
+          alert.success(`Sold ${num} shares of ${sym}`);
+          getStocks();
+          getBalance();
+        }).catch((e) => {
+          alert.error(e.response.data.error);
+        });
+      }
     } else {
-      apiService.addSharesToList(item.collection_id, sym, num).then(() => {
-        alert.success(`Added ${num} shares of ${sym}`);
-        getStocks();
-      }).catch((e) => {
-        alert.error(e.response.data.error);
-      });
+      if (transactionMode === "Add") {
+        apiService.addSharesToList(item.collection_id, sym, num).then(() => {
+          alert.success(`Added ${num} shares of ${sym}`);
+          getStocks();
+        }).catch((e) => {
+          alert.error(e.response.data.error);
+        });
+      } else {
+        apiService.removeSharesFromList(item.collection_id, sym, num).then(() => {
+          alert.success(`Removed ${num} shares of ${sym}`);
+          getStocks();
+        }).catch((e) => {
+          alert.error(e.response.data.error);
+        });
+      }
     }
   }
 
@@ -306,11 +318,11 @@ const PortfolioViewer = ({ item, goBack }) => {
         </button>
       </div>
       <h2>{item.name}</h2>
+      <h2>Present Value: ${presentValue.toFixed(2)}</h2>
       {item.type === "Portfolio" && (
         <div>
           <h3>Balance: ${balance.toFixed(2)}</h3>
         </div>)}
-          <h2>Present Value: {presentValue}</h2>
         
           {item.type === "Portfolio" && (
           <div>
@@ -324,21 +336,25 @@ const PortfolioViewer = ({ item, goBack }) => {
           </form>
         </div>)
       }
+      <select onChange={(e) => setTransactionMode(e.target.value)}>
+        <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
+        <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
+      </select>
       <form className="simple-form"
           onSubmit={handleSubmit}>
         <input className="form-input" 
           type="text"
-          placeholder={`Enter The Symbol Of A Stock You Want To Add To Your ${item.type}`}
+          placeholder={"Stock Symbol"}
           onChange={(e) => sym = e.target.value}
           required/>
         <input className="form-input"
           type="text"
-          placeholder="How Much"
+          placeholder="Amount"
           onChange={(e) => n = e.target.value}
           required/>
         <input className="form-submit" 
           type="submit"
-          value="Add"/>
+          value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
       </form>
       <div className={hidden ? "hidden" : undefined}>
         <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>

@@ -53,7 +53,6 @@ const Stock = ({ symbol, setHidden, held }) => {
     }
 
     apiService.getStockStats(symbol).then((res1) => {
-      console.log(res1.data);
       setStockStats(res1.data);
       apiService.getStockHistory(symbol).then((res2) => {
         setStockHistory(res2.data.history);
@@ -238,26 +237,26 @@ const Stock = ({ symbol, setHidden, held }) => {
     setGraphMode("Max");
   };
 
-  const plotFuture = () => {
+  const plotFuture = (ndays) => {
     const sh = stockHistory[stockHistory.length-1];
     const newData = [...stockHistory];
     const isd = stockHistory[0].close;
     const dh = new Date(sh.date);
     const y = dh.getFullYear();
     const slope = (sh.close - isd) / stockHistory.length;
-    console.log(slope);
 
-    for (let i = 1; i < 3; i++) {
-      dh.setFullYear(dh.getFullYear() + 1);
+    for (let i = 1; i <= ndays; i++) {
+      const newDay = moment(dh).add(i, "days").toDate();
       newData.push({
-        close: sh.close + slope * i * 365,
-        date: dh.toISOString()
+        close: sh.close + slope * i,
+        date: newDay.toISOString()
       });
     }
 
     setGraphData(transformToGraphData(newData));
     setUnit("year");
-    setGraphMode("Future");
+    if (ndays === 365) setGraphMode("+1Y");
+    else if (ndays === 365 * 5) setGraphMode("+5Y");
   }
 
   const destroy = (e) => {
@@ -281,7 +280,8 @@ const Stock = ({ symbol, setHidden, held }) => {
         <button className="btn" onClick={plotYearly} disabled={graphMode === "1Y"}>1Y</button>
         <button className="btn" onClick={plotFiveYears} disabled={graphMode === "5Y"}>5Y</button>
         <button className="btn" onClick={plotMax} disabled={graphMode === "Max"}>Max</button>
-        <button className="btn" onClick={plotFuture} disabled={graphMode === "Future"}>Future</button>
+        <button className="btn" onClick={() => plotFuture(365)} disabled={graphMode === "+1Y"}>+1Y</button>
+        <button className="btn" onClick={() => plotFuture(365 * 5)} disabled={graphMode === "+5Y"}>+5Y</button>
         <div className="stock-graph">
           <Line data={graphData} plugins={[hoverLine]} options={options}/>
         </div>
@@ -295,11 +295,11 @@ const Stock = ({ symbol, setHidden, held }) => {
           <div className="col-2">
             <p>Close: ${stockData.close.toFixed(2)}</p>
             <p>Volume: {stockData.volume}</p>
-            <p>Beta: {stockStats.beta}</p>
+            <p>Beta: {stockStats.beta.toFixed(3)}</p>
           </div>
           <div className="col-3">
-            <p>Variance: {stockStats.variance}</p>
-            <p>COV: {stockStats.cv}</p>
+            <p>Variance: {stockStats.variance.toFixed(3)}</p>
+            <p>COV: {stockStats.cv.toFixed(3)}</p>
           </div>
           <div className="col-2"></div>
         </div>
