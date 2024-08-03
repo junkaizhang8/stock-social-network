@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import apiService from '../../services/api.js';
-import Table from '../../utils/table.jsx';
+import Table from '../../components/table/Table.jsx';
 import alert from '../../utils/alert.js';
 import Stock from '../../components/stock/Stock';
 import "./Portfolio.css"
