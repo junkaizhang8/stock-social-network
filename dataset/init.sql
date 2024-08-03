@@ -118,7 +118,4 @@ COPY stock_history(date, open, high, low, close, volume, symbol)
 FROM '/docker-entrypoint-initdb.d/INTC.csv' DELIMITER ',' CSV HEADER;
 
 COPY stock_history(date, open, high, low, close, volume, symbol)
-FROM '/docker-entrypoint-initdb.d/NVDA.csv' DELIMITER ',' CSV HEADER;
-
-COPY stock_history(date, open, high, low, close, volume, symbol)
 FROM '/docker-entrypoint-initdb.d/ZTS.csv' DELIMITER ',' CSV HEADER;
