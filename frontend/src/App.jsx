@@ -20,8 +20,6 @@ function App() {
   else if (page_num == 1)
     page = <Portfolio/>
   else if (page_num == 2)
-    page = <p>:D</p>
-  else if (page_num == 3)
     page = <Friends/>
     
   const logout = () => {
@@ -42,12 +40,6 @@ function App() {
         <button 
           onClick={() => setPageNum(2)} 
           disabled={page_num == 2}
-          className="page-button">
-            Profile
-        </button>
-        <button 
-          onClick={() => setPageNum(3)} 
-          disabled={page_num == 3}
           className="page-button">
             Friends
         </button>

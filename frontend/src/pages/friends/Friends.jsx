@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import apiService from '../../services/api';
 import alert from '../../utils/alert';
-import onLastPage from '../../utils/on-last-page';
 
 const Friends = () => {
-  const [page, setPage] = useState(0);
   const [friends, setFriends] = useState([]);
   const [friendsTotal, setFriendsTotal] = useState(0);
   const [inRequests, setInRequests] = useState([]);
@@ -27,7 +25,7 @@ const Friends = () => {
   };
 
   const getFriends = async () => {
-    apiService.getFriends(page).then((res) => {
+    apiService.getFriends().then((res) => {
       const body = res.data;
       setFriends(body.friends);
       setFriendsTotal(body.total);
@@ -46,7 +44,7 @@ const Friends = () => {
   };
 
   const getIncomingFriendRequests = async () => {
-    apiService.getIncomingFriendRequests(page).then((res) => {
+    apiService.getIncomingFriendRequests().then((res) => {
       const body = res.data;
       setInRequests(body.requests);
       setInRequestsTotal(body.total);
@@ -56,7 +54,7 @@ const Friends = () => {
   };
 
   const getOutgoingFriendRequests = async () => {
-    apiService.getOutgoingFriendRequests(page).then((res) => {
+    apiService.getOutgoingFriendRequests().then((res) => {
       const body = res.data;
       setOutRequests(body.requests);
       setOutRequestsTotal(body.total);
@@ -83,22 +81,6 @@ const Friends = () => {
     });
   };
 
-  const previousPage = () => {
-    if (page === 0) return;
-    setPage(page - 1);
-    if (mode === 'friends') getFriends();
-    else if (mode === 'incoming') getIncomingFriendRequests();
-    else getOutgoingFriendRequests();
-  };
-
-  const nextPage = () => {
-    if (onLastPage(page, 10, showFriends ? friendsTotal : requestsTotal)) return;
-    setPage(page + 1);
-    if (mode === 'friends') getFriends();
-    else if (mode === 'incoming') getIncomingFriendRequests();
-    else getOutgoingFriendRequests();
-  };
-
   const handleFriendRequest = (e) => {
     e.preventDefault();
     const name = e.target[0].value;
@@ -110,7 +92,6 @@ const Friends = () => {
 
   const showFriendsList = () => {
     if (mode !== 'friends') {
-      setPage(0);
       getFriends();
       setMode('friends');
       document.getElementById('friendsList').classList.remove('hidden');
@@ -121,7 +102,6 @@ const Friends = () => {
 
   const showIncomingRequestsList = () => {
     if (mode !== 'incoming') {
-      setPage(0);
       getIncomingFriendRequests();
       setMode('incoming');
       document.getElementById('friendsList').classList.add('hidden');
@@ -132,7 +112,6 @@ const Friends = () => {
 
   const showOutgoingRequestsList = () => {
     if (mode !== 'outgoing') {
-      setPage(0);
       getOutgoingFriendRequests();
       setMode('outgoing');
       document.getElementById('friendsList').classList.add('hidden');

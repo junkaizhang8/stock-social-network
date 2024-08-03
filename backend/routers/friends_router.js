@@ -5,14 +5,7 @@ export const friendsRouter = Router();
 
 // Get friends
 friendsRouter.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   const friendQuery = await pool.query(
     `
@@ -26,11 +19,10 @@ friendsRouter.get("/", async (req, res) => {
       FROM relationship
       WHERE (user2 = $1 AND type = 'friend')
       ORDER BY timestamp DESC
-      OFFSET $2
-      LIMIT $3)
+    )
     JOIN account ON user_id = account_id;
     `,
-    [userId, page * limit, limit]
+    [userId]
   );
 
   const totalQuery = await pool.query(

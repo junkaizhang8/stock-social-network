@@ -47,8 +47,8 @@ const apiService = {
     });
   },
 
-  getPortfolios: async (page = 0, limit = 10) => {
-    return api.get(`/portfolios/?page=${page}&limit=${limit}`);
+  getPortfolios: async () => {
+    return api.get("/portfolios");
   },
 
   getPortfolioStocks: async (portfolioId) => {
@@ -89,16 +89,16 @@ const apiService = {
     });
   },
 
-  getPublicStockLists: async (page = 0, limit = 10) => {
-    return api.get(`/stock-lists/?page=${page}&limit=${limit}`);
+  getPublicStockLists: async () => {
+    return api.get("/stock-lists");
   },
 
-  getSharedStockLists: async (page = 0, limit = 10) => {
-    return api.get(`/stock-lists/shared/?page=${page}&limit=${limit}`);
+  getSharedStockLists: async () => {
+    return api.get("/stock-lists/shared");
   },
 
-  getPersonalStockLists: async (page = 0, limit = 10) => {
-    return api.get(`/stock-lists/me/?page=${page}&limit=${limit}`);
+  getPersonalStockLists: async () => {
+    return api.get("/stock-lists/me");
   },
 
   getStockListStocks: async (listId) => {
@@ -113,10 +113,8 @@ const apiService = {
     return api.post(`/stock-lists/${listId}/reviews`, { text });
   },
 
-  getReviews: async (listId, page = 0, limit = 10) => {
-    return api.get(
-      `/stock-lists/${listId}/reviews/?page=${page}&limit=${limit}`
-    );
+  getReviews: async (listId) => {
+    return api.get(`/stock-lists/${listId}/reviews`);
   },
 
   editReview: async (listId, text) => {
@@ -147,8 +145,8 @@ const apiService = {
     return api.patch(`/requests/?name=${name}&action=decline`);
   },
 
-  getFriends: async (page = 0, limit = 10) => {
-    return api.get(`/friends/?page=${page}&limit=${limit}`);
+  getFriends: async () => {
+    return api.get("/friends");
   },
 
   deleteFriend: async (name) => {

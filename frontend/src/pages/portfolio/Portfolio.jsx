@@ -211,14 +211,9 @@ const PortfolioViewer = ({ item, goBack }) => {
       return ;
 
     apiService.getReviews(item.collection_id, 0, 200).then((res) => {
-      if (res.status != 200)
-        console.log(res.data.error);
-      else {
-        console.log(res.data.reviews);
-        setReviews(res.data.reviews);
-      }
+      setReviews(res.data.reviews);
     }).catch((e) => {
-      console.log(e);
+      alert.error(e.response.data.error);
     });
   }
 
@@ -345,7 +340,6 @@ const PortfolioViewer = ({ item, goBack }) => {
           <button className='btn' onClick={() => displayTransactions()} disabled={showTransactions}>Transactions</button>
         </div>
         <div className={showTransactions ? "hidden" : undefined}>
-        {item.type === "Portfolio" && (
           <div>
             <select onChange={(e) => setMode(e.target.value)}>
               <option value="Deposit">Deposit</option>
@@ -355,170 +349,100 @@ const PortfolioViewer = ({ item, goBack }) => {
               <input className='form-input' type='text' placeholder='Amount'/>
               <input className='form-submit' type='submit' value={mode}/>
             </form>
-          </div>)
-        }
-        <select onChange={(e) => setTransactionMode(e.target.value)}>
-          <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
-          <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
-        </select>
-        <form className="simple-form"
-            onSubmit={handleSubmit}>
-          <input className="form-input" 
-            type="text"
-            placeholder={"Stock Symbol"}
-            onChange={(e) => sym = e.target.value}
-            required/>
-          <input className="form-input"
-            type="text"
-            placeholder="Amount"
-            onChange={(e) => n = e.target.value}
-          <form className="simple-form" onSubmit={updateBalance}>
-            <input className='form-input' type='text' placeholder='Amount'/>
-            <input className='form-submit' type='submit' value={mode}/>
-          </form>
-        </div>)
-      }
-      <select onChange={(e) => setTransactionMode(e.target.value)}>
-        <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
-        <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
-      </select>
-      <form className="simple-form"
-          onSubmit={handleSubmit}>
-        <input className="form-input" 
-          type="text"
-          placeholder={"Stock Symbol"}
-          onChange={(e) => sym = e.target.value}
-          required/>
-        <input className="form-input"
-          type="text"
-          placeholder="Amount"
-          onChange={(e) => n = e.target.value}
-          required/>
-        <input className="form-submit" 
-          type="submit"
-          value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
-      </form>
-      <div className={hidden ? "hidden" : undefined}>
-        <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
-      </div>
-
-      <div style={{display: "flex" }}>
-        {stocks.map((item, i) => {
-          return (
-            <StockButton id={i} item={item}/>
-          )
-        })}
-      </div>
-      
-      <Table
-        caption="Covariance Matrix"
-        data={covarMatrix}
-        getName={(i) => stocks[i].symbol}
-        getData={(i, j) => covarMatrix[i][j]}/>
-
-      <div style={{paddingTop:30}}>
-      <Table
-        caption="Correlation Matrix"
-        data={corrMatrix}
-        getName={(i) => stocks[i].symbol}
-        getData={(i, j) => corrMatrix[i][j]}/>
-      </div>
-
-        {item.type == "Stock List" &&
-      <div> 
-        <h3>Reviews</h3>
-        <form className="simple-form" onSubmit={(e) => handleRevSub(e)}>
-          <input className="form-input"
-            type="text"
-            placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
-            required/>
-          <input className="form-submit" 
-            type="submit"
-            value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
-        </form>
-        <div className={hidden ? "hidden" : undefined}>
-          <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
-        </div>
-        <div style={{display: "flex" }}>
-          {stocks.map((item, i) => {
-            return (
-              <StockButton id={i} item={item}/>
-            )
-          })}
-        </div>
-      
-        <Table
-          caption="Covariance Matrix"
-          data={covarMatrix}
-          getName={(i) => stocks[i].symbol}
-          getData={(i, j) => covarMatrix[i][j]}/>
-
-        <div style={{paddingTop:30}}>
-        <Table
-          caption="Correlation Matrix"
-          data={corrMatrix}
-          getName={(i) => stocks[i].symbol}
-          getData={(i, j) => corrMatrix[i][j]}/>
-        </div>
-
-          {item.type == "Stock List" &&
-        <div> 
-          <h3>Reviews</h3>
-          <form className="simple-form" onSubmit={handleRevSub}>
+          </div>
+          <select onChange={(e) => setTransactionMode(e.target.value)}>
+            <option value="Add">{item.type === "Portfolio" ? "Buy" : "Add"}</option>
+            <option value="Remove">{item.type === "Portfolio" ? "Sell" : "Remove"}</option>
+          </select>
+          <form className="simple-form"
+              onSubmit={handleSubmit}>
+            <input className="form-input" 
+              type="text"
+              placeholder={"Stock Symbol"}
+              onChange={(e) => sym = e.target.value}
+              required/>
             <input className="form-input"
               type="text"
-              placeholder="Write a review"
-              onChange={(e) => rev = e.target.value}
-              value={rev}
+              placeholder="Amount"
+              onChange={(e) => n = e.target.value}
               required/>
-            <input className="form-submit"
+            <input className="form-submit" 
               type="submit"
-              value="+"/>
+              value={item.type !== "Portfolio" ? transactionMode : (transactionMode === "Add" ? "Buy" : "Sell")}/>
           </form>
-          {reviews.map((item, i) => {
-            return (
-              <div className="portfolio-tile">
-                <p id={i} className="portfolio-type">`"{item.text}"`</p>
-                <a id={i} onClick={() => console.log("delete")} className="portfolio-tile-name">
-                  delete?
-                </a>
-              </div>
-            )
-          })}
-        </div>
-          }
-      </div>
-      <div className={showTransactions ? undefined : "hidden"}>
-        <div>
-          {transactions.length && (
-            <div className='transaction-tile row'>
-              <p className='col-3 bold'>Symbol</p>
-              <p className='col-3 bold'>Shares</p>
-              <p className='col-3 bold'>Delta</p>
-              <p className='col-3 bold'>Timestamp</p>
+          <div className={hidden ? "hidden" : undefined}>
+            <Stock symbol={stockSymbol} setHidden={setHidden}></Stock>
+          </div>
 
-        {reviews.map((item, i) => {
-          return (
-            <div className="portfolio-tile">
-              <p id={i} className="portfolio-type">`"{item.text}"`</p>
-              <a id={i} onClick={() => handleDelRev()} className="portfolio-tile-name">
-                delete?
-              </a>
-              <a id={i} onClick={() => setReviewMode(true)} className="portfolio-tile-name">
-                edit?
-              </a>
+          <div style={{display: "flex" }}>
+            {stocks.map((item, i) => {
+              return (
+                <StockButton id={i} item={item}/>
+              )
+            })}
+          </div>
+      
+          <Table
+            caption="Covariance Matrix"
+            data={covarMatrix}
+            getName={(i) => stocks[i].symbol}
+            getData={(i, j) => covarMatrix[i][j]}/>
+
+          <div style={{paddingTop:30}}>
+          <Table
+            caption="Correlation Matrix"
+            data={corrMatrix}
+            getName={(i) => stocks[i].symbol}
+            getData={(i, j) => corrMatrix[i][j]}/>
+          </div>
+          {item.type == "Stock List" &&
+            <div>
+              <h3>Reviews</h3>
+              <form className={"simple-form" + (item.is_owner ? " hidden" : "")} onSubmit={handleRevSub}>
+                <input className="form-input"
+                  type="text"
+                  placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
+                  required/>
+                <input className="form-submit"
+                  type="submit"
+                  value="+"/>
+              </form>
+
+              {reviews.map((rev_item, i) => {return (
+                <div className="portfolio-tile">
+                  <h4 className='portfolio-type'>{rev_item.reviewer_name}</h4>
+                  <p className="portfolio-type">"{rev_item.text}"</p>
+                  <a onClick={() => handleDelRev()} className={"portfolio-tile-name" + (rev_item.is_owner ? "" : " hidden")}>
+                    delete?
+                  </a>
+                  <a onClick={() => setReviewMode(true)} className={"portfolio-tile-name" + (rev_item.is_owner ? "" : " hidden")}>
+                    edit?
+                  </a>
+                </div>)
+              })}
             </div>
-          )}
-          {transactions.map((item, i) => {
-            return (
-              <div key={i} className='transaction-tile row'>
-                <p className='col-3'>{item.symbol}</p>
-                <p className='col-3'>{item.shares}</p>
-                <p className='col-3'>{(parseFloat(item.delta) > 0 ? "+" : "-") + "$" + Math.abs(parseFloat(item.delta)).toFixed(2)}</p>
-                <p className='col-3'>{item.timestamp}</p>
-                </div>);})}
+          }
         </div>
-      </div>
+        <div className={showTransactions ? undefined : "hidden"}>
+          <div>
+            {transactions.length && (
+              <div className='transaction-tile row'>
+                <p className='col-3 bold'>Symbol</p>
+                <p className='col-3 bold'>Shares</p>
+                <p className='col-3 bold'>Delta</p>
+                <p className='col-3 bold'>Timestamp</p>
+              </div>
+            )}
+            {transactions.map((item, i) => {
+              return (
+                <div key={i} className='transaction-tile row'>
+                  <p className='col-3'>{item.symbol}</p>
+                  <p className='col-3'>{item.shares}</p>
+                  <p className='col-3'>{(parseFloat(item.delta) > 0 ? "+" : "-") + "$" + Math.abs(parseFloat(item.delta)).toFixed(2)}</p>
+                  <p className='col-3'>{item.timestamp}</p>
+                  </div>);})}
+          </div>
+        </div>
     </>
   );
 };

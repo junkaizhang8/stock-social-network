@@ -119,7 +119,6 @@ portfoliosRouter.post("/:id", async (req, res) => {
       stockInPortfolioQuery.rowCount > 0 &&
       stockInPortfolioQuery.rows[0].shares + shares > 0
     ) {
-      console.log("change stock normal");
       await pool.query(
         `
         UPDATE in_collection
@@ -150,7 +149,6 @@ portfoliosRouter.post("/:id", async (req, res) => {
       stockInPortfolioQuery.rowCount > 0 &&
       stockInPortfolioQuery.rows[0].shares + shares == 0
     ) {
-      console.log("delete stock strange");
       await pool.query(
         `
           DELETE FROM in_collection
@@ -180,7 +178,7 @@ portfoliosRouter.post("/:id", async (req, res) => {
       stockInPortfolioQuery.rowCount > 0 &&
       stockInPortfolioQuery.rows[0].shares + shares < 0
     )
-      return res.status(422).json({ error: "Selling more stock than exists" });
+      return res.status(422).json({ error: "Selling more stock than exists." });
 
     // If stock does not exist in portfolio, add stock
     await pool.query(
@@ -216,14 +214,7 @@ portfoliosRouter.post("/:id", async (req, res) => {
 
 // Get portfolios for a user
 portfoliosRouter.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   const portfolioQuery = await pool.query(
     `
@@ -232,11 +223,9 @@ portfoliosRouter.get("/", async (req, res) => {
       SELECT collection_id, name
       FROM stock_collection
       WHERE owner = $1)
-    ORDER BY collection_id DESC
-    OFFSET $2
-    LIMIT $3;
+    ORDER BY collection_id DESC;
     `,
-    [userId, page * limit, limit]
+    [userId]
   );
 
   const totalQuery = await pool.query(
@@ -346,8 +335,6 @@ portfoliosRouter.get("/:id/balance", async (req, res) => {
 // Get portfolio transactions
 portfoliosRouter.get("/:id/transactions", async (req, res) => {
   const portfolioId = parseInt(req.params.id);
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
 
   const userIdQuery = await pool.query(
     `
@@ -366,20 +353,14 @@ portfoliosRouter.get("/:id/transactions", async (req, res) => {
     return res.status(403).json({ error: "Not authorized." });
   }
 
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
-
   const transactionQuery = await pool.query(
     `
     SELECT *
     FROM transaction
     WHERE collection_id = $1
-    ORDER BY timestamp DESC
-    OFFSET $2
-    LIMIT $3;
+    ORDER BY timestamp DESC;
     `,
-    [portfolioId, page * limit, limit]
+    [portfolioId]
   );
 
   const totalQuery = await pool.query(

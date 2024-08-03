@@ -70,14 +70,7 @@ reviewsRouter.post("/", async (req, res) => {
 // Get reviews for a list
 reviewsRouter.get("/", async (req, res) => {
   const listId = req.params.listId;
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   // Check if user is allowed to see reviews of the list
   // To be allowed, list must exist and either:
@@ -114,7 +107,7 @@ reviewsRouter.get("/", async (req, res) => {
   if (visibility === "shared" && !isOwner) {
     const reviewQuery = await pool.query(
       `
-      SELECT collection_id, reviewer, username AS reviewer_name, text
+      SELECT collection_id, reviewer, username AS reviewer_name, text, reviewer = $2 AS is_owner
       FROM review JOIN account on reviewer = account_id
       WHERE collection_id = $1 AND reviewer = $2;
       `,
@@ -129,28 +122,16 @@ reviewsRouter.get("/", async (req, res) => {
 
   const reviewQuery = await pool.query(
     `
-    SELECT collection_id, reviewer, username AS reviewer_name, text
+    SELECT collection_id, reviewer, username AS reviewer_name, text, reviewer = $2 AS is_owner
     FROM review JOIN account on reviewer = account_id
-    WHERE collection_id = $1
-    ORDER BY reviewer DESC
-    OFFSET $2
-    LIMIT $3;
-    `,
-    [listId, page * limit, limit]
-  );
-
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM review
     WHERE collection_id = $1;
     `,
-    [listId]
+    [listId, userId]
   );
 
   res.json({
     reviews: reviewQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: reviewQuery.rowsCount,
   });
 });
 

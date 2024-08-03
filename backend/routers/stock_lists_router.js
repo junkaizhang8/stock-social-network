@@ -157,29 +157,20 @@ stocksListsRouter.post("/:id", async (req, res) => {
 
 // Get public stock lists
 stocksListsRouter.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   const stockListQuery = await pool.query(
     `
-    SELECT collection_id, name, owner, username AS owner_name, visibility, owner = $3 AS is_owner
+    SELECT collection_id, name, owner, username AS owner_name, visibility, owner = $1 AS is_owner
     FROM stock_collection NATURAL JOIN (
       SELECT *
       FROM stock_list
       WHERE visibility = 'public'
     )
     JOIN account ON owner = account_id
-    ORDER BY collection_id DESC
-    OFFSET $1
-    LIMIT $2;
+    ORDER BY collection_id DESC;
     `,
-    [page * limit, limit, userId]
+    [userId]
   );
 
   const totalQuery = await pool.query(
@@ -200,14 +191,7 @@ stocksListsRouter.get("/", async (req, res) => {
 
 // Get shared stock lists
 stocksListsRouter.get("/shared", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   const stockListQuery = await pool.query(
     `
@@ -225,11 +209,9 @@ stocksListsRouter.get("/shared", async (req, res) => {
     NATURAL JOIN stock_list
     JOIN account ON owner = account_id
     WHERE visibility = 'shared'
-    ORDER BY collection_id DESC
-    OFFSET $2
-    LIMIT $3;
+    ORDER BY collection_id DESC;
     `,
-    [userId, page * limit, limit]
+    [userId]
   );
 
   const totalQuery = await pool.query(
@@ -259,14 +241,7 @@ stocksListsRouter.get("/shared", async (req, res) => {
 
 // Get personal stock lists
 stocksListsRouter.get("/me", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
-
   const userId = req.user.id;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   const stockListQuery = await pool.query(
     `
@@ -275,11 +250,9 @@ stocksListsRouter.get("/me", async (req, res) => {
       SELECT collection_id, name
       FROM stock_collection
       WHERE owner = $1)
-    ORDER BY collection_id DESC
-    OFFSET $2
-    LIMIT $3;
+    ORDER BY collection_id DESC;
     `,
-    [userId, page * limit, limit]
+    [userId]
   );
 
   const totalQuery = await pool.query(

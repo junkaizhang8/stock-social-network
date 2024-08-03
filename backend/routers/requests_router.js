@@ -94,13 +94,7 @@ requestsRouter.post("/", async (req, res) => {
 
 // Get friend requests
 requestsRouter.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(req.query.limit) || 10;
   const type = req.query.type;
-
-  if (page < 0 || limit < 0) {
-    return res.status(422).json({ error: "Invalid page or limit." });
-  }
 
   if (type !== "incoming" && type !== "outgoing") {
     return res.status(422).json({ error: "Invalid request type." });
@@ -124,11 +118,10 @@ requestsRouter.get("/", async (req, res) => {
         FROM relationship
         WHERE (user2 = $1 AND type = 'u1request')
         ORDER BY timestamp DESC
-        OFFSET $2
-        LIMIT $3)
+      )
       JOIN account ON user_id = account_id;
       `,
-      [userId, page * limit, limit]
+      [userId]
     );
 
     totalQuery = await pool.query(
@@ -153,11 +146,10 @@ requestsRouter.get("/", async (req, res) => {
         FROM relationship
         WHERE (user2 = $1 AND type = 'u2request')
         ORDER BY timestamp DESC
-        OFFSET $2
-        LIMIT $3)
+      )
       JOIN account ON user_id = account_id;
       `,
-      [userId, page * limit, limit]
+      [userId]
     );
 
     totalQuery = await pool.query(
