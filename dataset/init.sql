@@ -48,7 +48,7 @@ CREATE TABLE stock_history (
   high PRICE,
   low PRICE,
   close PRICE,
-  volume INTEGER,
+  volume BIGINT,
   date DATE NOT NULL DEFAULT NOW(),
   PRIMARY KEY (symbol, date),
   CHECK (open >= 0 AND high >= 0 AND low >= 0 AND close >= 0 AND volume >= 0)
@@ -78,4 +78,47 @@ COPY stock_history(date, open, high, low, close, volume, symbol)
 FROM '/docker-entrypoint-initdb.d/SP500History.csv' DELIMITER ',' CSV HEADER;
 
 INSERT INTO stock(symbol)
-SELECT symbol FROM stock_history GROUP BY symbol
+SELECT symbol FROM stock_history GROUP BY symbol;
+
+-- Load new stock data
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/AAL.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/AAP.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ABBV.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ABT.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ACN.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ADBE.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ADI.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ADM.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ADP.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ADSK.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/AEE.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/INTC.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/NVDA.csv' DELIMITER ',' CSV HEADER;
+
+COPY stock_history(date, open, high, low, close, volume, symbol)
+FROM '/docker-entrypoint-initdb.d/ZTS.csv' DELIMITER ',' CSV HEADER;
