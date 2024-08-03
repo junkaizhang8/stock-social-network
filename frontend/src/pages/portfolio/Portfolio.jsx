@@ -444,8 +444,8 @@ const Portfolio = () => {
       else {
         res = await apiService.createStockList(name, shareType);
       }
-
       getCollections(typeFilter);
+      alert.success(`Created ${createType} "${name}"`);
     } catch (e) {
       alert.error(e.response.data.error);
     }
@@ -476,7 +476,7 @@ const Portfolio = () => {
             <option value="Stock List">Stock List</option>
           </select>
 
-          <select value={shareType} onChange={(e) => setShare(e.target.value)}>
+          <select className={createType !== "Stock List" ? "hidden" : undefined} value={shareType} onChange={(e) => setShare(e.target.value)}>
             <option value="public">Public</option>
             <option value="shared">Shared</option>
             <option value="private">Private</option>

@@ -5,8 +5,7 @@ import { authenticateToken } from "../middleware/auth.js";
 export const statsRouter = Router();
 
 const toFloat = (str) => {
-  const k = parseFloat(str);
-  return isNan(k) ? 0 : k;
+  return parseFloat(str) || 0;
 };
 
 async function get_stat1_cache (sym) {
