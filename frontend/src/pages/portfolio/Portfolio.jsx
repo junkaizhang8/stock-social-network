@@ -42,7 +42,6 @@ const PortfolioViewer = ({ item, goBack }) => {
   const [reviews, setReviews] = useState([]);
   const [presentValue, setPresentValue] = useState(0);
   const [reviewmode, setReviewMode] = useState(false);
-  const [rev, setRev] = useState("");
   
   let sym;
   let n;
@@ -147,11 +146,13 @@ const PortfolioViewer = ({ item, goBack }) => {
     if (item.type != "Stock List")
       return;
 
+    const rev = e.target[0].value;
+    e.target[0].value = "";
+
     if (!reviewmode)
       apiService.createReview(item.collection_id, rev).then(() => {
         alert.success("Added review!");
         getReviews();
-        setRev("");
       }).catch((e) => {
         alert.error(e.response.data.error);
       })
@@ -160,7 +161,6 @@ const PortfolioViewer = ({ item, goBack }) => {
       apiService.editReview(item.collection_id, rev).then(() => {
         alert.success("Edited review");
         getReviews();
-        setRev("");
       }).catch((e) => {
         alert.error(e.response.data.error);
       })
@@ -369,12 +369,10 @@ const PortfolioViewer = ({ item, goBack }) => {
         {item.type == "Stock List" &&
       <div> 
         <h3>Reviews</h3>
-        <form className="simple-form" onSubmit={handleRevSub}>
+        <form className="simple-form" onSubmit={(e) => handleRevSub(e)}>
           <input className="form-input"
             type="text"
             placeholder={`${reviewmode ? "Edit" : "Write"} a review`}
-            onChange={(e) => setRev(e.target.value)}
-            value={rev}
             required/>
           <input className="form-submit"
             type="submit"
