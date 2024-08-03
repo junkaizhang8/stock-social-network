@@ -7,9 +7,11 @@ const Friends = () => {
   const [page, setPage] = useState(0);
   const [friends, setFriends] = useState([]);
   const [friendsTotal, setFriendsTotal] = useState(0);
-  const [requests, setRequests] = useState([]);
-  const [requestsTotal, setRequestsTotal] = useState(0);
-  const [showFriends, setShowFriends] = useState(true);
+  const [inRequests, setInRequests] = useState([]);
+  const [inRequestsTotal, setInRequestsTotal] = useState(0);
+  const [outRequests, setOutRequests] = useState([]);
+  const [outRequestsTotal, setOutRequestsTotal] = useState(0);
+  const [mode, setMode] = useState("friends");
 
   useEffect(() => {
     getFriends();
@@ -43,11 +45,21 @@ const Friends = () => {
     });
   };
 
-  const getFriendRequests = async () => {
-    apiService.getFriendRequests(page).then((res) => {
+  const getIncomingFriendRequests = async () => {
+    apiService.getIncomingFriendRequests(page).then((res) => {
       const body = res.data;
-      setRequests(body.requests);
-      setRequestsTotal(body.total);
+      setInRequests(body.requests);
+      setInRequestsTotal(body.total);
+    }).catch((e) => {
+      alert.error(e.response.data.error);
+    });
+  };
+
+  const getOutgoingFriendRequests = async () => {
+    apiService.getOutgoingFriendRequests(page).then((res) => {
+      const body = res.data;
+      setOutRequests(body.requests);
+      setOutRequestsTotal(body.total);
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
@@ -56,7 +68,7 @@ const Friends = () => {
   const acceptRequest = (name) => {
     apiService.acceptFriendRequest(name).then(() => {
       alert.success('Request accepted');
-      getFriendRequests();
+      getIncomingFriendRequests();
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
@@ -65,7 +77,7 @@ const Friends = () => {
   const rejectRequest = (name) => {
     apiService.declineFriendRequest(name).then(() => {
       alert.success('Request rejected');
-      getFriendRequests();
+      getIncomingFriendRequests();
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
@@ -74,13 +86,17 @@ const Friends = () => {
   const previousPage = () => {
     if (page === 0) return;
     setPage(page - 1);
-    showFriends ? getFriends() : getFriendRequests();
+    if (mode === 'friends') getFriends();
+    else if (mode === 'incoming') getIncomingFriendRequests();
+    else getOutgoingFriendRequests();
   };
 
   const nextPage = () => {
     if (onLastPage(page, 10, showFriends ? friendsTotal : requestsTotal)) return;
     setPage(page + 1);
-    showFriends ? getFriends() : getFriendRequests();
+    if (mode === 'friends') getFriends();
+    else if (mode === 'incoming') getIncomingFriendRequests();
+    else getOutgoingFriendRequests();
   };
 
   const handleFriendRequest = (e) => {
@@ -93,22 +109,35 @@ const Friends = () => {
   }
 
   const showFriendsList = () => {
-    if (!showFriends) {
+    if (mode !== 'friends') {
       setPage(0);
       getFriends();
-      setShowFriends(true);
+      setMode('friends');
       document.getElementById('friendsList').classList.remove('hidden');
-      document.getElementById('requestsList').classList.add('hidden');
+      document.getElementById('incomingRequestsList').classList.add('hidden');
+      document.getElementById('outgoingRequestsList').classList.add('hidden');
     }
   }
 
-  const showRequestsList = () => {
-    if (showFriends) {
+  const showIncomingRequestsList = () => {
+    if (mode !== 'incoming') {
       setPage(0);
-      getFriendRequests();
-      setShowFriends(false);
+      getIncomingFriendRequests();
+      setMode('incoming');
       document.getElementById('friendsList').classList.add('hidden');
-      document.getElementById('requestsList').classList.remove('hidden');
+      document.getElementById('incomingRequestsList').classList.remove('hidden');
+      document.getElementById('outgoingRequestsList').classList.add('hidden');
+    }
+  }
+
+  const showOutgoingRequestsList = () => {
+    if (mode !== 'outgoing') {
+      setPage(0);
+      getOutgoingFriendRequests();
+      setMode('outgoing');
+      document.getElementById('friendsList').classList.add('hidden');
+      document.getElementById('incomingRequestsList').classList.add('hidden');
+      document.getElementById('outgoingRequestsList').classList.remove('hidden');
     }
   }
 
@@ -116,15 +145,21 @@ const Friends = () => {
     <>
       <button
         className='btn'
-        onClick={showFriendsList}
-        disabled={showFriends}>
+        onClick={() => showFriendsList()}
+        disabled={mode === 'friends'}>
           My Friends
       </button>
       <button
         className='btn'
-        onClick={showRequestsList}
-        disabled={!showFriends}>
-          Friend Requests
+        onClick={() => showIncomingRequestsList()}
+        disabled={mode === 'incoming'}>
+          Incoming Requests
+      </button>
+      <button
+        className='btn'
+        onClick={() => showOutgoingRequestsList()}
+        disabled={mode === 'outgoing'}>
+          Outgoing Requests
       </button>
       <form className='simple-form' onSubmit={handleFriendRequest}>
         <input className='form-input' type='text' placeholder='Username' />
@@ -138,8 +173,8 @@ const Friends = () => {
           </div>
         ))}
       </div>
-      <div id='requestsList'>
-        {requests.map((request) => (
+      <div id='incomingRequestsList'>
+        {inRequests.map((request) => (
           <div key={request.user_id}>
             <span>{request.username}</span>
             <button onClick={() => acceptRequest(request.username)}>Accept</button>
@@ -147,8 +182,13 @@ const Friends = () => {
           </div>
         ))}
       </div>
-      <button className={page === 0 && 'disabled'} onClick={previousPage}>&lt;</button>
-      <button className={onLastPage(page, 10, showFriends ? friendsTotal : requestsTotal) && 'disabled'} onClick={nextPage}>&gt;</button>
+      <div id='outgoingRequestsList'>
+        {outRequests.map((request) => (
+          <div key={request.user_id}>
+            <span>{request.username}</span>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
