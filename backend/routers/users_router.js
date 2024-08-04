@@ -39,19 +39,39 @@ usersRouter.post("/signup", async (req, res) => {
   const passwordHash = bcrypt.hashSync(password, salt);
 
   try {
-    await pool.query(
+    const userQuery = await pool.query(
       `
       INSERT INTO account (username, password)
-      VALUES ($1, $2);
+      VALUES ($1, $2)
+      RETURNING account_id;
       `,
       [username, passwordHash]
     );
 
+    const userId = userQuery.rows[0].account_id;
+
+    const collectionQuery = await pool.query(
+      `
+      INSERT INTO stock_collection (name, owner)
+      VALUES ($1, $2)
+      RETURNING collection_id;
+      `,
+      [`${username}'s Portfolio`, userId]
+    );
+
+    const collectionId = collectionQuery.rows[0].collection_id;
+
+    await pool.query(
+      `
+      INSERT INTO portfolio (collection_id, balance)
+      VALUES ($1, $2);
+      `,
+      [collectionId, 0]
+    );
+
     return res.json({ message: "Sign up successful." });
   } catch (err) {
-    return res
-      .status(422)
-      .json({ error: "Sign up failed. Could not create user." });
+    return res.status(422).json({ error: "Sign up failed." });
   }
 });
 
