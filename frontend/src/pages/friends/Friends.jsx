@@ -4,11 +4,8 @@ import alert from '../../utils/alert';
 
 const Friends = () => {
   const [friends, setFriends] = useState([]);
-  const [friendsTotal, setFriendsTotal] = useState(0);
   const [inRequests, setInRequests] = useState([]);
-  const [inRequestsTotal, setInRequestsTotal] = useState(0);
   const [outRequests, setOutRequests] = useState([]);
-  const [outRequestsTotal, setOutRequestsTotal] = useState(0);
   const [mode, setMode] = useState("friends");
 
   useEffect(() => {
@@ -28,7 +25,6 @@ const Friends = () => {
     apiService.getFriends().then((res) => {
       const body = res.data;
       setFriends(body.friends);
-      setFriendsTotal(body.total);
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
@@ -47,7 +43,6 @@ const Friends = () => {
     apiService.getIncomingFriendRequests().then((res) => {
       const body = res.data;
       setInRequests(body.requests);
-      setInRequestsTotal(body.total);
     }).catch((e) => {
       alert.error(e.response.data.error);
     });
@@ -57,7 +52,6 @@ const Friends = () => {
     apiService.getOutgoingFriendRequests().then((res) => {
       const body = res.data;
       setOutRequests(body.requests);
-      setOutRequestsTotal(body.total);
     }).catch((e) => {
       alert.error(e.response.data.error);
     });

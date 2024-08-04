@@ -3,7 +3,6 @@ import apiService from '../../services/api';
 
 const Requests = () => {
   const [requests, setRequests] = useState([]);
-  const [total, setTotal] = useState(0);
 
   const getRequests = async () => {
     apiService.getRequests().then((res) => {
@@ -13,7 +12,6 @@ const Requests = () => {
         return;
       }
       setRequests(body.requests);
-      setTotal(body.total);
     });
   };
 

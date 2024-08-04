@@ -228,20 +228,9 @@ portfoliosRouter.get("/", async (req, res) => {
     [userId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM portfolio NATURAL JOIN (
-      SELECT collection_id
-      FROM stock_collection
-      WHERE owner = $1);
-    `,
-    [userId]
-  );
-
   return res.json({
     portfolios: portfolioQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: portfolioQuery.rowCount,
   });
 });
 
@@ -284,18 +273,9 @@ portfoliosRouter.get("/:id", async (req, res) => {
     [portfolioId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM in_collection
-    WHERE collection_id = $1;
-    `,
-    [portfolioId]
-  );
-
   res.json({
     stocks: stockQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: stockQuery.rowCount,
   });
 });
 
@@ -363,18 +343,9 @@ portfoliosRouter.get("/:id/transactions", async (req, res) => {
     [portfolioId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM transaction
-    WHERE collection_id = $1;
-    `,
-    [portfolioId]
-  );
-
   res.json({
     transactions: transactionQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: transactionQuery.rowCount,
   });
 });
 

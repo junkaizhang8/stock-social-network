@@ -103,7 +103,6 @@ requestsRouter.get("/", async (req, res) => {
   const userId = req.user.id;
 
   let requestQuery;
-  let totalQuery;
 
   if (type === "incoming") {
     requestQuery = await pool.query(
@@ -120,16 +119,6 @@ requestsRouter.get("/", async (req, res) => {
         ORDER BY timestamp DESC
       )
       JOIN account ON user_id = account_id;
-      `,
-      [userId]
-    );
-
-    totalQuery = await pool.query(
-      `
-      SELECT COUNT(*) AS total
-      FROM relationship
-      WHERE user1 = $1 AND type = 'u2request'
-        OR user2 = $1 AND type = 'u1request';
       `,
       [userId]
     );
@@ -151,21 +140,11 @@ requestsRouter.get("/", async (req, res) => {
       `,
       [userId]
     );
-
-    totalQuery = await pool.query(
-      `
-      SELECT COUNT(*) AS total
-      FROM relationship
-      WHERE user1 = $1 AND type = 'u1request'
-        OR user2 = $1 AND type = 'u2request';
-      `,
-      [userId]
-    );
   }
 
   res.json({
     requests: requestQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: requestQuery.rowCount,
   });
 });
 

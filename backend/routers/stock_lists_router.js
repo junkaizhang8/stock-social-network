@@ -173,19 +173,9 @@ stocksListsRouter.get("/", async (req, res) => {
     [userId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM stock_collection NATURAL JOIN (
-      SELECT collection_id
-      FROM stock_list
-      WHERE visibility = 'public');
-    `
-  );
-
   res.json({
     stockLists: stockListQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: stockListQuery.rowCount,
   });
 });
 
@@ -214,28 +204,9 @@ stocksListsRouter.get("/shared", async (req, res) => {
     [userId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM (
-      SELECT user2 AS owner
-      FROM relationship
-      WHERE (user1 = $1 AND type = 'friend')
-      UNION
-      SELECT user1 AS owner
-      FROM relationship
-      WHERE (user2 = $1 AND type = 'friend')
-    )
-    NATURAL JOIN stock_collection
-    NATURAL JOIN stock_list
-    WHERE visibility = 'shared';
-    `,
-    [userId]
-  );
-
   res.json({
     stockLists: stockListQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: stockListQuery.rowCount,
   });
 });
 
@@ -255,20 +226,9 @@ stocksListsRouter.get("/me", async (req, res) => {
     [userId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM stock_list NATURAL JOIN (
-      SELECT collection_id
-      FROM stock_collection
-      WHERE owner = $1);
-    `,
-    [userId]
-  );
-
   return res.json({
     stockLists: stockListQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: stockListQuery.rowCount,
   });
 });
 
@@ -322,18 +282,9 @@ stocksListsRouter.get("/:id", async (req, res) => {
     [listId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM in_collection
-    WHERE collection_id = $1;
-    `,
-    [listId]
-  );
-
   res.json({
     stocks: stockQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: stockQuery.rowCount,
   });
 });
 

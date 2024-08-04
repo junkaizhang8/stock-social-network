@@ -25,18 +25,9 @@ friendsRouter.get("/", async (req, res) => {
     [userId]
   );
 
-  const totalQuery = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM relationship
-    WHERE (user1 = $1 OR user2 = $1) AND type = 'friend';
-    `,
-    [userId]
-  );
-
   res.json({
     friends: friendQuery.rows,
-    total: parseInt(totalQuery.rows[0].total),
+    total: friendQuery.rowCount,
   });
 });
 

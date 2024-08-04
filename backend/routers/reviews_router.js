@@ -131,7 +131,7 @@ reviewsRouter.get("/", async (req, res) => {
 
   res.json({
     reviews: reviewQuery.rows,
-    total: reviewQuery.rowsCount,
+    total: reviewQuery.rowCount,
   });
 });
 
